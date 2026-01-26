@@ -1,0 +1,157 @@
+package dev.ninjacheetah.tigerdine.data.types
+
+import kotlinx.serialization.Serializable
+import java.util.Date
+
+// Struct to parse the response data from the TigerCenter API when getting the information for a dining location.
+@Serializable
+data class DiningLocationParser(
+    // Other basic information to read from a location's JSON that we'll need later.
+    val id: Int,
+    val mdoId: Int,
+    val name: String,
+    val summary: String,
+    val description: String,
+    val mapsUrl: String,
+    val department: String,
+    val mapId: Int,
+    val mrkId: Int,
+    val catId: Int,
+    val contacts: Array<String>,
+    val events: Array<Event>,
+    val menus: Array<Menu>
+) {
+    // An individual "event", which is just an open period for the location.
+    @Serializable
+    data class Event(
+        val id: Int,
+        val name: String,
+        val locationId: Int,
+        val locationName: String,
+        val startTime: String,
+        val endTime: String,
+        val startDate: String,
+        val endDate: String,
+        val daysMask: Int,
+        val daysOfWeek: Array<String>,
+        val exceptions: Array<HoursException>?,
+        val infinite: Boolean,
+        val menuTypes: Array<String>?,
+        val description: String?
+    ) {
+        // Hour exceptions for the given event.
+        @Serializable
+        data class HoursException(
+            val id: Int,
+            val name: String,
+            val startTime: String,
+            val endTime: String,
+            val daysOfWeek: Array<String>,
+            val startDate: String,
+            val endDate: String,
+            val daysMask: Int,
+            val open: Boolean,
+            val infinite: Boolean
+        )
+    }
+    // An individual "menu", which can be either a daily special item or a visitng chef. Description
+    // needs to be optional because visiting chefs have descriptions but specials do not.
+    @Serializable
+    data class Menu(
+        val id: Int,
+        val name: String,
+        val description: String?,
+        val price: Int,
+        val category: String,
+        val eventId: Int
+    )
+}
+
+// Struct that probably doesn't need to exist but this made parsing the list of location responses easy.
+@Serializable
+data class DiningLocationsParser(
+    val locations: Array<DiningLocationParser>
+)
+
+// Enum to represent the four possible states a given location can be in.
+enum class OpenStatus {
+    OPEN, CLOSED, OPENING_SOON, CLOSING_SOON
+}
+
+// An individual open period for a location.
+data class DiningTimes(
+    var openTime: Date,
+    var closeTime: Date
+)
+
+// Enum to represent the five possible states a visiting chef can be in.
+enum class VisitingChefStatus {
+    HERE_NOW, GONE, ARRIVING_LATER, ARRIVING_SOON, LEAVING_SOON
+}
+
+// A visiting chef present at a location.
+data class VisitingChef(
+    val name: String,
+    val description: String,
+    var openTime: Date,
+    var closeTime: Date,
+    var status: VisitingChefStatus
+)
+
+// A daily special at a location.
+data class DailySpecial(
+    val name: String,
+    val type: String
+)
+
+// The IDs required to get the menu for a location from FD MealPlanner. Only present if the location appears in the map.
+data class FDMPIds(
+    val locationId: Int,
+    val accountId: Int
+)
+
+// The basic information about a dining location needed to display it in the app after parsing is finished.
+data class DiningLocation(
+    val id: Int,
+    val mdoId: Int,
+    val fdmpIds: FDMPIds?,
+    val name: String,
+    val summary: String,
+    val desc: String,
+    val mapsUrl: String,
+    val date: Date,
+    val diningTimes: Array<DiningTimes>?,
+    var open: OpenStatus,
+    var visitingChefs: Array<VisitingChef>?,
+    val dailySpecials: Array<DailySpecial>?
+)
+
+// Parser to read the occupancy data for a location.
+@Serializable
+data class DiningOccupancyParser(
+    val count: Int,
+    val location: String,
+    val building: String,
+    val mdo_id: Int,
+    val max_occ: Int,
+    val open_status: String,
+    val intra_loc_hours: Array<HourlyOccupancy>
+) {
+    // Represents a per-hour occupancy rating.
+    @Serializable
+    data class HourlyOccupancy(
+        val hour: Int,
+        val today: Int,
+        val today_max: Int,
+        val one_week_ago: Int,
+        val one_week_ago_max: Int,
+        val average: Int
+    )
+}
+
+// Struct used to represent a day and its hours as strings. Type used for the hours of today and the next 6 days used in DetailView.
+data class WeeklyHours(
+    val day: String,
+    val date: Date,
+    val timeStrings: Array<String>
+)
