@@ -28,6 +28,11 @@ class DiningModel(
             }
         }
 
+    val locationsWithChefs: List<DiningLocation>
+        get() = diningData.filter { location ->
+            !location.visitingChefs.isNullOrEmpty()
+        }
+
     fun getHoursByDay() {
         getAllDiningInfo(null, getApplication()) { parserResult ->
             if (parserResult != null) {

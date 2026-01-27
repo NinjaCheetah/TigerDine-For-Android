@@ -284,7 +284,7 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
                     // I've chosen to assume that no visiting chef will ever close in the morning.
                     // This could bad choice but I have yet to see any evidence of a visiting chef
                     // leaving before noon so far.
-                    val closeHour = timeStrings.last().trim().filter { it.isDigit() }.toInt()
+                    val closeHour = timeStrings.last().trim().filter { it.isDigit() }.toInt() + 12
                     closeTime = LocalDateTime(
                         today.year,
                         today.month,
@@ -322,7 +322,7 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
                 )
             } else if (menu.category == "Daily Specials") {
                 println("found daily special: ${menu.name}")
-                val splitString = menu.name.split("(", limit = 1)
+                val splitString = menu.name.split("(", limit = 2)
                 specials.add(
                     DailySpecial(
                         splitString[0],
