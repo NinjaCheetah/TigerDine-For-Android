@@ -253,13 +253,13 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
         for (menu in location.menus) {
             if (menu.category == "Visiting Chef") {
                 var name: String = menu.name
-                val splitString = name.split("(", limit = 1)
+                val splitString = name.split("(", limit = 2)
                 name = splitString[0].trim()
                 // Time parsing nonsense starts here. Extracts the time from a string like
                 // "Chef (4-7p.m.)", splits it at the "-", strips the non-numerical characters
                 // from each part, parses it as a number and adds 12 hours as needed, then creates
                 // a Date instance for that time on today's date.
-                val timeStrings = splitString[1].replace(")", "").split("-", limit = 1)
+                val timeStrings = splitString[1].replace(")", "").split("-", limit = 2)
                 println("raw open range: $timeStrings")
 
                 val openTime: Instant
@@ -298,10 +298,10 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
                 }
 
                 // Parse the chef's status, mapping the OpenStatus to a VisitingChefStatus.
-                val visitngChefStatus: VisitingChefStatus = when (parseOpenStatus(openTime, closeTime, today.toInstant(zone))) {
+                val visitngChefStatus: VisitingChefStatus = when (parseOpenStatus(openTime, closeTime, Clock.System.now())) {
                     OpenStatus.OPEN -> VisitingChefStatus.HERE_NOW
                     OpenStatus.CLOSED -> {
-                        if (today < openTime.toLocalDateTime(zone)) {
+                        if (Clock.System.now() < openTime) {
                             VisitingChefStatus.ARRIVING_LATER
                         } else {
                             VisitingChefStatus.GONE
@@ -352,4 +352,27 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
         visitingChefs = visitingChefs,
         dailySpecials = dailySpecials
     )
+}
+
+// Updates the open status of a location and of its visiting chefs, so that the labels in the UI
+// update automatically as time progresses and locations open/close/etc.
+fun DiningLocation.updateOpenStatus() {
+    this.open = parseMultiOpenStatus(diningTimes, Clock.System.now())
+    if (this.visitingChefs != null && !this.visitingChefs.isEmpty()) {
+        for (i in visitingChefs.indices) {
+            this.visitingChefs[i].status = when (parseOpenStatus(visitingChefs[i].openTime, visitingChefs[i].closeTime,
+                Clock.System.now())) {
+                OpenStatus.OPEN -> VisitingChefStatus.HERE_NOW
+                OpenStatus.CLOSED -> {
+                    if (Clock.System.now() < visitingChefs[i].openTime) {
+                        VisitingChefStatus.ARRIVING_LATER
+                    } else {
+                        VisitingChefStatus.GONE
+                    }
+                }
+                OpenStatus.OPENING_SOON -> VisitingChefStatus.ARRIVING_SOON
+                OpenStatus.CLOSING_SOON -> VisitingChefStatus.LEAVING_SOON
+            }
+        }
+    }
 }

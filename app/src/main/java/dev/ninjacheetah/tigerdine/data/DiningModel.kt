@@ -17,8 +17,19 @@ class DiningModel(
     var diningData by mutableStateOf<List<DiningLocation>>(emptyList())
         private set
 
+    val sortedDiningData: List<DiningLocation>
+        get() {
+            fun removeThe(name: String) =
+                if (name.startsWith("The ", ignoreCase = true)) name.drop(4) else name
+
+            return diningData.sortedWith { a, b ->
+                removeThe(a.name)
+                    .compareTo(removeThe(b.name), ignoreCase = true)
+            }
+        }
+
     fun getHoursByDay() {
-        getAllDiningInfo(getApplication()) { parserResult ->
+        getAllDiningInfo(null, getApplication()) { parserResult ->
             if (parserResult != null) {
                 diningData = parserResult.locations.map {
                     parseLocationInfo(it, Clock.System.now())

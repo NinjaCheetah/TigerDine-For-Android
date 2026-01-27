@@ -122,7 +122,7 @@ data class DiningLocation(
     val date: Instant,
     val diningTimes: List<DiningTimes>?,
     var open: OpenStatus,
-    var visitingChefs: List<VisitingChef>?,
+    val visitingChefs: List<VisitingChef>?,
     val dailySpecials: List<DailySpecial>?
 )
 
