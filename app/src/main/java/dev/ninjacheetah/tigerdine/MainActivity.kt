@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -57,7 +60,9 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
                         TopAppBar(
-                            title = { Text("TigerDine For Android Beta") },
+                            title = {
+                                Text("TigerDine For Android Beta")
+                            },
                             actions = {
                                 IconButton(
                                     onClick = { viewModel.getHoursByDay() },
@@ -68,10 +73,28 @@ class MainActivity : ComponentActivity() {
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
+                            },
+                            navigationIcon = {
+                                IconButton(
+                                    onClick = { navController.navigateUp() },
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.arrow_back_24px),
+                                        contentDescription = "Back icon",
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
                         )
                     },
                 ) { innerPadding ->
+                    // Automatically fetch hours when the app loads.
+                    // This is here because putting it inside HomeScreen was making it re-run
+                    // every time you navigated back which was a lot of wasted network calls.
+                    LaunchedEffect(Unit) {
+                        viewModel.getHoursByDay()
+                    }
+
                     NavHost(
                         navController = navController,
                         startDestination = "home",
@@ -90,7 +113,17 @@ class MainActivity : ComponentActivity() {
                         }
                         composable(
                             "detail/{locationId}",
-                            arguments = listOf(navArgument("locationId") { type = NavType.IntType })
+                            arguments = listOf(navArgument("locationId") { type = NavType.IntType }),
+                            enterTransition = {
+                                slideInHorizontally(animationSpec = tween(300)) {
+                                        fullWidth -> fullWidth / 1
+                                }
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(animationSpec = tween(500)) {
+                                        fullWidth -> fullWidth / 1
+                                }
+                            }
                         ) { backStackEntry ->
                             val locationId = backStackEntry.arguments?.getInt("locationId")!!
                             DetailScreen(
@@ -98,7 +131,19 @@ class MainActivity : ComponentActivity() {
                                 locationId = locationId
                             )
                         }
-                        composable("visitingChefs") {
+                        composable(
+                            "visitingChefs",
+                            enterTransition = {
+                                slideInHorizontally(animationSpec = tween(300)) {
+                                        fullWidth -> fullWidth / 1
+                                }
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(animationSpec = tween(500)) {
+                                        fullWidth -> fullWidth / 1
+                                }
+                            }
+                        ) {
                             VisitingChefsScreen(
                                 viewModel = viewModel
                             )
@@ -118,11 +163,6 @@ fun HomeScreen(
     onVisitingChefClick: () -> Unit
 ) {
     val diningData by remember { derivedStateOf { viewModel.sortedDiningData } }
-
-    // Automatically fetch hours when home screen loads.
-    LaunchedEffect(Unit) {
-        viewModel.getHoursByDay()
-    }
 
     Column(
         modifier = modifier.fillMaxSize()
