@@ -1,7 +1,7 @@
 package dev.ninjacheetah.tigerdine.data.types
 
 import kotlinx.serialization.Serializable
-import java.util.Date
+import kotlin.time.Instant
 
 // Struct to parse the response data from the TigerCenter API when getting the information for a dining location.
 @Serializable
@@ -17,9 +17,9 @@ data class DiningLocationParser(
     val mapId: Int,
     val mrkId: Int,
     val catId: Int,
-    val contacts: Array<String>,
-    val events: Array<Event>,
-    val menus: Array<Menu>
+    val contacts: List<String>,
+    val events: List<Event>,
+    val menus: List<Menu>
 ) {
     // An individual "event", which is just an open period for the location.
     @Serializable
@@ -33,10 +33,10 @@ data class DiningLocationParser(
         val startDate: String,
         val endDate: String,
         val daysMask: Int,
-        val daysOfWeek: Array<String>,
-        val exceptions: Array<HoursException>?,
+        val daysOfWeek: List<String>,
+        val exceptions: List<HoursException>?,
         val infinite: Boolean,
-        val menuTypes: Array<String>?,
+        val menuTypes: List<String>?,
         val description: String?
     ) {
         // Hour exceptions for the given event.
@@ -46,7 +46,7 @@ data class DiningLocationParser(
             val name: String,
             val startTime: String,
             val endTime: String,
-            val daysOfWeek: Array<String>,
+            val daysOfWeek: List<String>,
             val startDate: String,
             val endDate: String,
             val daysMask: Int,
@@ -70,7 +70,7 @@ data class DiningLocationParser(
 // Struct that probably doesn't need to exist but this made parsing the list of location responses easy.
 @Serializable
 data class DiningLocationsParser(
-    val locations: Array<DiningLocationParser>
+    val locations: List<DiningLocationParser>
 )
 
 // Enum to represent the four possible states a given location can be in.
@@ -80,8 +80,8 @@ enum class OpenStatus {
 
 // An individual open period for a location.
 data class DiningTimes(
-    var openTime: Date,
-    var closeTime: Date
+    var openTime: Instant,
+    var closeTime: Instant
 )
 
 // Enum to represent the five possible states a visiting chef can be in.
@@ -93,8 +93,8 @@ enum class VisitingChefStatus {
 data class VisitingChef(
     val name: String,
     val description: String,
-    var openTime: Date,
-    var closeTime: Date,
+    var openTime: Instant,
+    var closeTime: Instant,
     var status: VisitingChefStatus
 )
 
@@ -119,11 +119,11 @@ data class DiningLocation(
     val summary: String,
     val desc: String,
     val mapsUrl: String,
-    val date: Date,
-    val diningTimes: Array<DiningTimes>?,
+    val date: Instant,
+    val diningTimes: List<DiningTimes>?,
     var open: OpenStatus,
-    var visitingChefs: Array<VisitingChef>?,
-    val dailySpecials: Array<DailySpecial>?
+    var visitingChefs: List<VisitingChef>?,
+    val dailySpecials: List<DailySpecial>?
 )
 
 // Parser to read the occupancy data for a location.
@@ -135,7 +135,7 @@ data class DiningOccupancyParser(
     val mdo_id: Int,
     val max_occ: Int,
     val open_status: String,
-    val intra_loc_hours: Array<HourlyOccupancy>
+    val intra_loc_hours: List<HourlyOccupancy>
 ) {
     // Represents a per-hour occupancy rating.
     @Serializable
@@ -152,6 +152,6 @@ data class DiningOccupancyParser(
 // Struct used to represent a day and its hours as strings. Type used for the hours of today and the next 6 days used in DetailView.
 data class WeeklyHours(
     val day: String,
-    val date: Date,
-    val timeStrings: Array<String>
+    val date: Instant,
+    val timeStrings: List<String>
 )

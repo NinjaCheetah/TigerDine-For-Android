@@ -8,16 +8,13 @@ import dev.ninjacheetah.tigerdine.data.types.DiningLocationsParser
 import kotlinx.serialization.json.Json
 
 fun getAllDiningInfo(context: Context, callback: (diningData: DiningLocationsParser?) -> Unit) {
-    val volleyQueue = Volley.newRequestQueue(context)
-    val url = "https://tigercenter.rit.edu/tigerCenterApi/tc/dining-all?date=2026-01-26"
+    val volleyQueue = Volley.newRequestQueue(context.applicationContext)
+    val url = "https://tigercenter.rit.edu/tigerCenterApi/tc/dining-all?date=2026-01-27"
 
     val jsonObjectRequest = JsonObjectRequest(
         Request.Method.GET, url, null,
         { response ->
-            println("made request")
-            println("Response: %s".format(response.toString()))
             val diningData = Json.decodeFromString<DiningLocationsParser>(response.toString())
-            println(diningData)
             callback(diningData)
         },
         { error ->
