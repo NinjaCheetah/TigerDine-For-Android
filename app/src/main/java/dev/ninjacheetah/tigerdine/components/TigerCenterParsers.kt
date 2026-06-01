@@ -40,7 +40,7 @@ fun parseOpenStatus(openTime: Instant, closeTime: Instant, referenceTime: Instan
 fun parseMultiOpenStatus(diningTimes: List<DiningTimes>?, referenceTime: Instant): OpenStatus {
     var openStatus: OpenStatus = OpenStatus.CLOSED
 
-    if (diningTimes == null || diningTimes.isEmpty()) {
+    if (diningTimes.isNullOrEmpty()) {
         return openStatus
     }
 
@@ -63,6 +63,7 @@ fun parseMultiOpenStatus(diningTimes: List<DiningTimes>?, referenceTime: Instant
 
 fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): DiningLocation {
     println("beginning parse for ${location.name} (id: ${location.id})")
+    println(forDate)
 
     // The descriptions sometimes have HTML <br /> tags despite also having \n.
     // Those need to be removed.
@@ -111,19 +112,18 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
     // we can just use the default times. Also check for repeats! The response data can include
     // those sometimes, for reasons:tm:
     // This gets the current day of the weeks as an all-caps string.
-    val today = Clock.System
-        .now()
+    val dayStr = (forDate ?: Clock.System.now())
         .toLocalDateTime(TimeZone.currentSystemDefault())
         .dayOfWeek
         .name
     for (event in location.events) {
-        if (event.exceptions != null && !event.exceptions.isEmpty() &&
+        if (!event.exceptions.isNullOrEmpty() &&
             // This additional check is necessary, because sometimes the exceptions are silly and
             // are doing something like marking a location as closed on a day that isn't included
             // in the regular schedule anyway. That breaks things. This check ensures that the
             // exception being looked at applies for the day we're parsing for before trying to
             // follow it.
-            today in event.exceptions[0].daysOfWeek)
+            dayStr in event.exceptions[0].daysOfWeek)
         {
             // Only save the exception times if the location is actually open during those times,
             // and if these times aren't a repeat. I've seen repeats for Brick City Cafe
@@ -142,7 +142,7 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
                 // schedule specifies which days of the week it applies to, and if the current
                 // day isn't in that list and there are no exceptions, that means there are no
                 // hours for this location.
-                if (today in event.daysOfWeek) {
+                if (dayStr in event.daysOfWeek) {
                     openStrings.add(event.startTime)
                     closeStrings.add(event.endTime)
                 }
@@ -267,10 +267,15 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
 
                 if (timeStrings.count() == 2) {
                     // If the time is NOT in the morning, add 12 hours.
-                    val openHour: Int = if (timeStrings.first().trim().contains("a.m")) {
+                    val openHour: Int = if (timeStrings.first().trim().contains("a") && timeStrings.first().trim().contains("m")) {
                         timeStrings.first().trim().filter { it.isDigit() }.toInt()
                     } else {
-                        timeStrings.first().trim().toInt() + 12
+                        try {
+                            timeStrings.first().trim().toInt() + 12
+                        } catch (_: NumberFormatException) {
+                            12
+                        }
+
                     }
                     openTime = LocalDateTime(
                         today.year,
@@ -282,8 +287,8 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
                     ).toInstant(zone)
 
                     // I've chosen to assume that no visiting chef will ever close in the morning.
-                    // This could bad choice but I have yet to see any evidence of a visiting chef
-                    // leaving before noon so far.
+                    // This could be a bad choice, but I have yet to see any evidence of a visiting
+                    // chef leaving before noon so far.
                     val closeHour = timeStrings.last().trim().filter { it.isDigit() }.toInt() + 12
                     closeTime = LocalDateTime(
                         today.year,
@@ -346,7 +351,7 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
         summary = location.summary,
         desc = desc,
         mapsUrl = mapsUrl,
-        date = Clock.System.now(),
+        date = forDate ?: Clock.System.now(),
         diningTimes = diningTimes,
         open = openStatus,
         visitingChefs = visitingChefs,
@@ -358,7 +363,7 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
 // update automatically as time progresses and locations open/close/etc.
 fun DiningLocation.updateOpenStatus() {
     this.open = parseMultiOpenStatus(diningTimes, Clock.System.now())
-    if (this.visitingChefs != null && !this.visitingChefs.isEmpty()) {
+    if (!this.visitingChefs.isNullOrEmpty()) {
         for (i in visitingChefs.indices) {
             this.visitingChefs[i].status = when (parseOpenStatus(visitingChefs[i].openTime, visitingChefs[i].closeTime,
                 Clock.System.now())) {

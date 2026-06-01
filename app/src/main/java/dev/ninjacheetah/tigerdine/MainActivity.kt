@@ -27,8 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -162,7 +160,17 @@ fun HomeScreen(
     onLocationClick: (Int) -> Unit,
     onVisitingChefClick: () -> Unit
 ) {
-    val diningData by remember { derivedStateOf { viewModel.sortedDiningData } }
+    val filteredLocations = remember(viewModel.locationsByDay) {
+        fun removeThe(name: String) =
+            if (name.startsWith("The ", ignoreCase = true)) name.drop(4) else name
+
+        viewModel.locationsByDay.firstOrNull()
+            ?.sortedWith { a, b ->
+                removeThe(a.name)
+                    .compareTo(removeThe(b.name), ignoreCase = true)
+            }
+            ?: emptyList()
+    }
 
     Column(
         modifier = modifier.fillMaxSize()
@@ -189,7 +197,7 @@ fun HomeScreen(
                         ) {
                             Row(modifier = Modifier.padding(12.dp)) {
                                 Text(
-                                    "Upcoming* Visiting Chefs",
+                                    "Upcoming Visiting Chefs",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.SemiBold
                                 )
@@ -198,17 +206,19 @@ fun HomeScreen(
                     }
                 }
 
-                items(diningData) { location ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        DiningLocationRow(
-                            location = location,
-                            onClick = { onLocationClick(location.id) }
-                        )
+                if (viewModel.isLoaded) {
+                    items(filteredLocations) { location ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            DiningLocationRow(
+                                location = location,
+                                onClick = { onLocationClick(location.id) }
+                            )
+                        }
                     }
                 }
             }

@@ -10,6 +10,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,13 +21,56 @@ import dev.ninjacheetah.tigerdine.components.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.DiningModel
 import dev.ninjacheetah.tigerdine.data.types.OpenStatus
 import dev.ninjacheetah.tigerdine.data.types.VisitingChefStatus
+import dev.ninjacheetah.tigerdine.data.types.WeeklyHours
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun DetailScreen(locationId: Int, viewModel: DiningModel = viewModel()) {
-    val location = viewModel.sortedDiningData.find { it.id == locationId }
+    val location = viewModel.locationsByDay.first().find { it.id == locationId }
+
+    val weeklyHours: List<WeeklyHours> = remember(viewModel.locationsByDay) {
+        var newWeeklyHours: List<WeeklyHours> = emptyList()
+
+        for (day in viewModel.locationsByDay) {
+            for (location in day) {
+                if (location.id == locationId) {
+                    val weekdayStr: String = location.date.toLocalDateTime(TimeZone.currentSystemDefault())
+                        .dayOfWeek
+                        .name
+                        .lowercase()
+                        .replaceFirstChar { it.uppercase() }
+
+                    if (!location.diningTimes.isNullOrEmpty()) {
+                        var timeStrings: List<String> = emptyList()
+
+                        for (time in location.diningTimes) {
+                            timeStrings = timeStrings + "${time.openTime.formatTigerDine()} - ${time.closeTime.formatTigerDine()}"
+                        }
+
+                        newWeeklyHours = newWeeklyHours + WeeklyHours(
+                            day = weekdayStr,
+                            date = location.date,
+                            timeStrings = timeStrings
+                        )
+                    } else {
+                        newWeeklyHours = newWeeklyHours + WeeklyHours(
+                            day = weekdayStr,
+                            date = location.date,
+                            timeStrings = listOf("Closed")
+                        )
+                    }
+                }
+            }
+        }
+
+        newWeeklyHours
+    }
 
     if (location != null) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
             Text(
                 location.name,
                 style = MaterialTheme.typography.headlineLarge,
@@ -60,7 +104,7 @@ fun DetailScreen(locationId: Int, viewModel: DiningModel = viewModel()) {
             } else {
                 Text("Not Open Today")
             }
-            if (location.visitingChefs != null && !location.visitingChefs.isEmpty()) {
+            if (!location.visitingChefs.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     "Today's Visiting Chefs",
@@ -97,7 +141,7 @@ fun DetailScreen(locationId: Int, viewModel: DiningModel = viewModel()) {
                     HorizontalDivider()
                 }
             }
-            if (location.dailySpecials != null && !location.dailySpecials.isEmpty()) {
+            if (!location.dailySpecials.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     "Today's Daily Specials",
@@ -122,25 +166,23 @@ fun DetailScreen(locationId: Int, viewModel: DiningModel = viewModel()) {
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold
             )
-            // TODO: make this actually show upcoming hours and not just today's
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
-            ) {
-                Text("Today")
-                Spacer(modifier = Modifier.weight(1f))
-                Column {
-                    if (location.diningTimes != null) {
-                        location.diningTimes.forEach { opening ->
-                            Text("${opening.openTime.formatTigerDine()} - ${opening.closeTime.formatTigerDine()}",
-                                style = MaterialTheme.typography.bodyLarge)
+
+            for (day in weeklyHours) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(day.day)
+                    Spacer(modifier = Modifier.weight(1f))
+                    Column {
+                        for (timeString in day.timeStrings) {
+                            Text(timeString, style = MaterialTheme.typography.bodyLarge)
                         }
-                    } else {
-                        Text("Closed")
                     }
                 }
+                HorizontalDivider()
             }
-            HorizontalDivider() // TODO: make this part of the loop over future dining times
+
             Spacer(modifier = Modifier.height(16.dp))
             Text(location.desc)
         }

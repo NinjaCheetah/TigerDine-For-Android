@@ -8,36 +8,59 @@ import androidx.lifecycle.AndroidViewModel
 import dev.ninjacheetah.tigerdine.components.getAllDiningInfo
 import dev.ninjacheetah.tigerdine.components.parseLocationInfo
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.plus
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
+import kotlin.time.Instant
 
 class DiningModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    var diningData by mutableStateOf<List<DiningLocation>>(emptyList())
+    var locationsByDay by mutableStateOf<List<List<DiningLocation>>>(emptyList())
         private set
 
-    val sortedDiningData: List<DiningLocation>
-        get() {
-            fun removeThe(name: String) =
-                if (name.startsWith("The ", ignoreCase = true)) name.drop(4) else name
+    var daysRepresented by mutableStateOf<List<Instant>>(emptyList())
+    var lastRefreshed by mutableStateOf<Instant?>(null)
+    var isLoaded by mutableStateOf(false)
 
-            return diningData.sortedWith { a, b ->
-                removeThe(a.name)
-                    .compareTo(removeThe(b.name), ignoreCase = true)
-            }
-        }
+    fun getDaysRepresented() {
+        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 
-    val locationsWithChefs: List<DiningLocation>
-        get() = diningData.filter { location ->
-            !location.visitingChefs.isNullOrEmpty()
+        daysRepresented = (0..6).map { offset ->
+            today
+                .plus(offset, DateTimeUnit.DAY)
+                .atStartOfDayIn(TimeZone.currentSystemDefault())
         }
+    }
 
     fun getHoursByDay() {
-        getAllDiningInfo(null, getApplication()) { parserResult ->
-            if (parserResult != null) {
-                diningData = parserResult.locations.map {
-                    parseLocationInfo(it, Clock.System.now())
+        println("loading from network")
+
+        getDaysRepresented()
+
+        locationsByDay = emptyList()
+
+        var completed = 0
+        val results = MutableList<List<DiningLocation>?>(daysRepresented.size) { null }
+
+        daysRepresented.forEachIndexed { index, day ->
+            getAllDiningInfo(day, getApplication()) { parserResult ->
+                if (parserResult != null) {
+                    results[index] = parserResult.locations.map {
+                        parseLocationInfo(it, day)
+                    }
+                }
+
+                completed++
+
+                if (completed == daysRepresented.size) {
+                    locationsByDay = results.map { it ?: emptyList() }
+                    lastRefreshed = Clock.System.now()
+                    isLoaded = true
                 }
             }
         }

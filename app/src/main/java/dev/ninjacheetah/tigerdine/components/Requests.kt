@@ -14,6 +14,7 @@ import kotlin.time.Instant
 fun getAllDiningInfo(date: Instant?, context: Context, callback: (diningData: DiningLocationsParser?) -> Unit) {
     val zone = TimeZone.currentSystemDefault()
     val targetDate = date?.toLocalDateTime(zone) ?: Clock.System.now().toLocalDateTime(zone)
+    println(targetDate)
     val url = "https://tigercenter.rit.edu/tigerCenterApi/tc/dining-all?date=${targetDate.toYyyyMmDd()}"
 
     val jsonObjectRequest = JsonObjectRequest(
