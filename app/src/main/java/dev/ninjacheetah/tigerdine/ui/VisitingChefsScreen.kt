@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.ninjacheetah.tigerdine.R
@@ -71,7 +70,7 @@ fun VisitingChefsScreen(viewModel: DiningModel = viewModel()) {
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.chevron_left_24px),
-                        contentDescription = "Back icon",
+                        contentDescription = "Previous day",
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -97,7 +96,7 @@ fun VisitingChefsScreen(viewModel: DiningModel = viewModel()) {
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.chevron_right_24px),
-                        contentDescription = "Back icon",
+                        contentDescription = "Next day",
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }

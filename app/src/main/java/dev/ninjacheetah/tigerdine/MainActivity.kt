@@ -9,17 +9,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -27,18 +22,16 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -48,11 +41,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import dev.ninjacheetah.tigerdine.components.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.DiningModel
-import dev.ninjacheetah.tigerdine.data.types.OpenStatus
 import dev.ninjacheetah.tigerdine.ui.DetailScreen
-import dev.ninjacheetah.tigerdine.ui.DiningLocationRow
+import dev.ninjacheetah.tigerdine.ui.LocationList
 import dev.ninjacheetah.tigerdine.ui.VisitingChefsScreen
 import dev.ninjacheetah.tigerdine.ui.theme.TigerDineTheme
 
@@ -93,9 +84,13 @@ class MainActivity : ComponentActivity() {
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
-                            }
+                            },
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer
+                            )
                         )
                     },
+                    containerColor = MaterialTheme.colorScheme.surfaceDim
                 ) { innerPadding ->
                     // Automatically fetch hours when the app loads.
                     // This is here because putting it inside HomeScreen was making it re-run
@@ -173,12 +168,9 @@ fun HomeScreen(
     onVisitingChefClick: () -> Unit
 ) {
 
-    Column(
-//        modifier = modifier.fillMaxSize()
-    ) {
+    Column {
         Surface(
             color = MaterialTheme.colorScheme.surfaceDim,
-//            modifier = Modifier.fillMaxSize()
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(3.dp),
@@ -196,19 +188,29 @@ fun HomeScreen(
                     Surface(
                         modifier = modifier
                             .fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.surfaceBright
+                        color = MaterialTheme.colorScheme.surfaceContainer
                     ) {
-                        Row(modifier = Modifier.padding(12.dp)) {
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(12.dp)
+                        ) {
                             Text(
                                 "Upcoming Visiting Chefs",
                                 style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(
+                                painter = painterResource(R.drawable.chevron_right_24px),
+                                contentDescription = "Navigate",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
                 }
 
-                DiningLocationRow(
+                LocationList(
                     viewModel = viewModel,
                     onClick = onLocationClick
                 )
