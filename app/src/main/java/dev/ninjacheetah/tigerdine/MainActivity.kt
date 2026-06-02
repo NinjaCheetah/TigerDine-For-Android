@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package dev.ninjacheetah.tigerdine
 
 import android.os.Bundle
@@ -7,6 +9,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -20,8 +23,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -29,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,14 +44,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import dev.ninjacheetah.tigerdine.components.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.DiningModel
+import dev.ninjacheetah.tigerdine.data.types.OpenStatus
 import dev.ninjacheetah.tigerdine.ui.DetailScreen
 import dev.ninjacheetah.tigerdine.ui.DiningLocationRow
 import dev.ninjacheetah.tigerdine.ui.VisitingChefsScreen
 import dev.ninjacheetah.tigerdine.ui.theme.TigerDineTheme
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -153,6 +160,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@ExperimentalMaterial3Api
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -160,17 +168,6 @@ fun HomeScreen(
     onLocationClick: (Int) -> Unit,
     onVisitingChefClick: () -> Unit
 ) {
-    val filteredLocations = remember(viewModel.locationsByDay) {
-        fun removeThe(name: String) =
-            if (name.startsWith("The ", ignoreCase = true)) name.drop(4) else name
-
-        viewModel.locationsByDay.firstOrNull()
-            ?.sortedWith { a, b ->
-                removeThe(a.name)
-                    .compareTo(removeThe(b.name), ignoreCase = true)
-            }
-            ?: emptyList()
-    }
 
     Column(
         modifier = modifier.fillMaxSize()
@@ -205,22 +202,10 @@ fun HomeScreen(
                         }
                     }
                 }
-
-                if (viewModel.isLoaded) {
-                    items(filteredLocations) { location ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            DiningLocationRow(
-                                location = location,
-                                onClick = { onLocationClick(location.id) }
-                            )
-                        }
-                    }
-                }
+                DiningLocationRow(
+                    viewModel = viewModel,
+                    onClick = { onLocationClick }
+                )
             }
         }
     }
