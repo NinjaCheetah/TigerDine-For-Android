@@ -28,6 +28,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -45,6 +46,7 @@ import dev.ninjacheetah.tigerdine.data.DiningModel
 import dev.ninjacheetah.tigerdine.ui.DetailScreen
 import dev.ninjacheetah.tigerdine.ui.LocationList
 import dev.ninjacheetah.tigerdine.ui.VisitingChefsScreen
+import dev.ninjacheetah.tigerdine.ui.components.LoadingScreen
 import dev.ninjacheetah.tigerdine.ui.theme.TigerDineTheme
 
 class MainActivity : ComponentActivity() {
@@ -70,17 +72,6 @@ class MainActivity : ComponentActivity() {
                                     Icon(
                                         painter = painterResource(R.drawable.refresh_24px),
                                         contentDescription = "Refresh icon",
-                                        tint = MaterialTheme.colorScheme.onSurface
-                                    )
-                                }
-                            },
-                            navigationIcon = {
-                                IconButton(
-                                    onClick = { navController.navigateUp() },
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.arrow_back_24px),
-                                        contentDescription = "Back icon",
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
@@ -167,53 +158,63 @@ fun HomeScreen(
     onLocationClick: (Int) -> Unit,
     onVisitingChefClick: () -> Unit
 ) {
-
     Column {
         Surface(
             color = MaterialTheme.colorScheme.surfaceDim,
+            modifier = Modifier.fillMaxSize()
         ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(3.dp),
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
-            ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    onClick = { onVisitingChefClick() }
+            if (!viewModel.isLoaded) {
+                LoadingScreen()
+            } else {
+                PullToRefreshBox(
+                    isRefreshing = viewModel.isRefreshing,
+                    onRefresh = { viewModel.getHoursByDay() },
+                    modifier = modifier
                 ) {
-                    Surface(
-                        modifier = modifier
-                            .fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.surfaceContainer
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp)
                     ) {
-                        Row(
+                        Card(
                             modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(12.dp)
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            onClick = { onVisitingChefClick() }
                         ) {
-                            Text(
-                                "Upcoming Visiting Chefs",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Icon(
-                                painter = painterResource(R.drawable.chevron_right_24px),
-                                contentDescription = "Navigate",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
+                            Surface(
+                                modifier = modifier
+                                    .fillMaxWidth(),
+                                color = MaterialTheme.colorScheme.surfaceContainer
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .align(Alignment.CenterHorizontally)
+                                        .padding(12.dp)
+                                ) {
+                                    Text(
+                                        "Upcoming Visiting Chefs",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Icon(
+                                        painter = painterResource(R.drawable.chevron_right_24px),
+                                        contentDescription = "Navigate",
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
                         }
+
+                        LocationList(
+                            viewModel = viewModel,
+                            onClick = onLocationClick
+                        )
                     }
                 }
-
-                LocationList(
-                    viewModel = viewModel,
-                    onClick = onLocationClick
-                )
             }
         }
     }

@@ -26,6 +26,7 @@ class DiningModel(
     var daysRepresented by mutableStateOf<List<Instant>>(emptyList())
     var lastRefreshed by mutableStateOf<Instant?>(null)
     var isLoaded by mutableStateOf(false)
+    var isRefreshing by mutableStateOf(false)
 
     fun getDaysRepresented() {
         val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -40,9 +41,9 @@ class DiningModel(
     fun getHoursByDay() {
         println("loading from network")
 
-        getDaysRepresented()
+        isRefreshing = true
 
-        locationsByDay = emptyList()
+        getDaysRepresented()
 
         var completed = 0
         val results = MutableList<List<DiningLocation>?>(daysRepresented.size) { null }
@@ -61,6 +62,7 @@ class DiningModel(
                     locationsByDay = results.map { it ?: emptyList() }
                     lastRefreshed = Clock.System.now()
                     isLoaded = true
+                    isRefreshing = false
                 }
             }
         }

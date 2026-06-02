@@ -10,7 +10,6 @@ lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.13.0"
 kotlin = "2.3.21"
 composeBom = "2026.05.01"
-material3Version = "1.5.0-alpha20"
 volley = "1.2.1"
 navigationCompose = "2.9.8"
 material3 = "1.5.0-alpha20"
@@ -18,7 +17,7 @@ material3 = "1.5.0-alpha20"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
-androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3Version" }
+androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
