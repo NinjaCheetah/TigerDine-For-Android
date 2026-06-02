@@ -60,11 +60,15 @@ fun LocationList(
                             location.diningTimes.forEach { opening ->
                                 Text(
                                     text = "${opening.openTime.formatTigerDine()} - ${opening.closeTime.formatTigerDine()}",
+                                    style = MaterialTheme.typography.titleSmall
                                 )
                             }
                         }
                     } else {
-                        Text("Not Open Today")
+                        Text(
+                            "Not Open Today",
+                            style = MaterialTheme.typography.titleSmall
+                        )
                     }
                 },
                 onClick = { onClick?.invoke(location.id) },
@@ -72,7 +76,7 @@ fun LocationList(
                 content = {
                     Text(
                         text = location.name,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold
                     )
                 },
