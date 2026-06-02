@@ -10,6 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -173,15 +174,17 @@ fun HomeScreen(
 ) {
 
     Column(
-        modifier = modifier.fillMaxSize()
+//        modifier = modifier.fillMaxSize()
     ) {
         Surface(
             color = MaterialTheme.colorScheme.surfaceDim,
-            modifier = Modifier.fillMaxSize()
+//            modifier = Modifier.fillMaxSize()
         ) {
             Column(
-                modifier = Modifier.verticalScroll(rememberScrollState())
-//                contentPadding = PaddingValues(16.dp)
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
             ) {
                 Card(
                     modifier = Modifier

@@ -2,6 +2,7 @@
 
 package dev.ninjacheetah.tigerdine.ui
 
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,18 +14,25 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ListItemShapes
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.ninjacheetah.tigerdine.components.formatTigerDine
@@ -53,53 +61,47 @@ fun DiningLocationRow(
 
     if (viewModel.isLoaded) {
         for (location in filteredLocations) {
-            Surface(
-                modifier = modifier
-                    .clickable(enabled = onClick != null) {
-                        onClick?.invoke(location.id)
-                    },
-                color = MaterialTheme.colorScheme.surfaceBright
-            ) {
-                SegmentedListItem(
-                    supportingContent = {
-                        when (location.open) {
-                            OpenStatus.OPEN -> Text("Open", color = Color.Green)
-                            OpenStatus.CLOSED -> Text("Closed", color = Color.Red)
-                            OpenStatus.OPENING_SOON -> Text(
-                                "Opening Soon",
-                                color = Color.hsl(32f, 1.00f, 0.48f)
-                            )
-
-                            OpenStatus.CLOSING_SOON -> Text(
-                                "Closing Soon",
-                                color = Color.hsl(32f, 1.00f, 0.48f)
-                            )
-                        }
-                    },
-                    trailingContent = {
-                        if (location.diningTimes != null) {
-                            Column {
-                                location.diningTimes.forEach { opening ->
-                                    Row {
-                                        Text(opening.openTime.formatTigerDine() + " - " + opening.closeTime.formatTigerDine())
-                                    }
-                                }
-                            }
-                        } else {
-                            Text("Not Open Today")
-                        }
-                    },
-                    onClick = { onClick?.invoke(location.id) },
-                    shapes = ListItemDefaults.segmentedShapes(index = 1, count = 1),
-                    content = {
-                        Text(
-                            text = location.name,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold
+            SegmentedListItem(
+                verticalAlignment = Alignment.CenterVertically,
+                supportingContent = {
+                    when (location.open) {
+                        OpenStatus.OPEN -> Text("Open", color = Color.Green)
+                        OpenStatus.CLOSED -> Text("Closed", color = Color.Red)
+                        OpenStatus.OPENING_SOON -> Text(
+                            "Opening Soon",
+                            color = Color.hsl(32f, 1.00f, 0.48f)
                         )
-                    },
-                )
-            }
+
+                        OpenStatus.CLOSING_SOON -> Text(
+                            "Closing Soon",
+                            color = Color.hsl(32f, 1.00f, 0.48f)
+                        )
+                    }
+                },
+                trailingContent = {
+                    if (location.diningTimes != null) {
+                        Column(
+                        ) {
+                            location.diningTimes.forEach { opening ->
+                                Text(
+                                    text = opening.openTime.formatTigerDine() + " - " + opening.closeTime.formatTigerDine(),
+                                )
+                            }
+                        }
+                    } else {
+                        Text("Not Open Today")
+                    }
+                },
+                onClick = { onClick?.invoke(location.id) },
+                shapes = ListItemDefaults.segmentedShapes(index = filteredLocations.indexOf(location), count = filteredLocations.count()),
+                content = {
+                    Text(
+                        text = location.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+            )
         }
     }
 }
