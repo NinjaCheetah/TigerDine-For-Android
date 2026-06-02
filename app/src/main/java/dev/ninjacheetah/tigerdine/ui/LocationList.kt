@@ -35,9 +35,9 @@ import kotlin.invoke
 
 @Composable
 fun DiningLocationRow(
+    modifier: Modifier = Modifier,
     viewModel: DiningModel = viewModel(),
-    onClick: ((Int) -> Unit)? = null,
-    modifier: Modifier = Modifier
+    onClick: ((Int) -> Unit)? = null
 ) {
     val filteredLocations = remember(viewModel.locationsByDay) {
         fun removeThe(name: String) =
@@ -52,58 +52,54 @@ fun DiningLocationRow(
     }
 
     if (viewModel.isLoaded) {
-        Column() {
-            items(filteredLocations) { location ->
-                Surface(
-                    modifier = modifier
-                        .clickable(enabled = onClick != null) {
-                            onClick?.invoke()
-                        },
-                    color = MaterialTheme.colorScheme.surfaceBright
-                ) {
-                    SegmentedListItem(
-                        supportingContent = {
-                            when (location.open) {
-                                OpenStatus.OPEN -> Text("Open", color = Color.Green)
-                                OpenStatus.CLOSED -> Text("Closed", color = Color.Red)
-                                OpenStatus.OPENING_SOON -> Text(
-                                    "Opening Soon",
-                                    color = Color.hsl(32f, 1.00f, 0.48f)
-                                )
+        for (location in filteredLocations) {
+            Surface(
+                modifier = modifier
+                    .clickable(enabled = onClick != null) {
+                        onClick?.invoke(location.id)
+                    },
+                color = MaterialTheme.colorScheme.surfaceBright
+            ) {
+                SegmentedListItem(
+                    supportingContent = {
+                        when (location.open) {
+                            OpenStatus.OPEN -> Text("Open", color = Color.Green)
+                            OpenStatus.CLOSED -> Text("Closed", color = Color.Red)
+                            OpenStatus.OPENING_SOON -> Text(
+                                "Opening Soon",
+                                color = Color.hsl(32f, 1.00f, 0.48f)
+                            )
 
-                                OpenStatus.CLOSING_SOON -> Text(
-                                    "Closing Soon",
-                                    color = Color.hsl(32f, 1.00f, 0.48f)
-                                )
-                            }
-                        },
-                        trailingContent = {
-                            if (location.diningTimes != null) {
-                                Column {
-                                    location.diningTimes.forEach { opening ->
-                                        Row {
-                                            Text(opening.openTime.formatTigerDine() + " - " + opening.closeTime.formatTigerDine())
-                                        }
+                            OpenStatus.CLOSING_SOON -> Text(
+                                "Closing Soon",
+                                color = Color.hsl(32f, 1.00f, 0.48f)
+                            )
+                        }
+                    },
+                    trailingContent = {
+                        if (location.diningTimes != null) {
+                            Column {
+                                location.diningTimes.forEach { opening ->
+                                    Row {
+                                        Text(opening.openTime.formatTigerDine() + " - " + opening.closeTime.formatTigerDine())
                                     }
                                 }
-                            } else {
-                                Text("Not Open Today")
                             }
-                        },
-                        onClick = { onClick?.invoke() },
-                        shapes = ListItemDefaults.segmentedShapes(index = 1, count = 1),
-                        content = {
-                            Text(
-                                text = location.name,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        },
-                    )
-                }
+                        } else {
+                            Text("Not Open Today")
+                        }
+                    },
+                    onClick = { onClick?.invoke(location.id) },
+                    shapes = ListItemDefaults.segmentedShapes(index = 1, count = 1),
+                    content = {
+                        Text(
+                            text = location.name,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    },
+                )
             }
         }
-
     }
 }
-

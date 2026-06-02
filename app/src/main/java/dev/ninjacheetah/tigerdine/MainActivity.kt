@@ -15,10 +15,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -176,35 +179,35 @@ fun HomeScreen(
             color = MaterialTheme.colorScheme.surfaceDim,
             modifier = Modifier.fillMaxSize()
         ) {
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp)
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState())
+//                contentPadding = PaddingValues(16.dp)
             ) {
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        shape = RoundedCornerShape(16.dp),
-                        onClick = { onVisitingChefClick() }
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    onClick = { onVisitingChefClick() }
+                ) {
+                    Surface(
+                        modifier = modifier
+                            .fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.surfaceBright
                     ) {
-                        Surface(
-                            modifier = modifier
-                                .fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.surfaceBright
-                        ) {
-                            Row(modifier = Modifier.padding(12.dp)) {
-                                Text(
-                                    "Upcoming Visiting Chefs",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
+                        Row(modifier = Modifier.padding(12.dp)) {
+                            Text(
+                                "Upcoming Visiting Chefs",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
                         }
                     }
                 }
+
                 DiningLocationRow(
                     viewModel = viewModel,
-                    onClick = { onLocationClick }
+                    onClick = onLocationClick
                 )
             }
         }
