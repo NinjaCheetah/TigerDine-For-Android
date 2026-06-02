@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
-
 package dev.ninjacheetah.tigerdine.ui
 
 import androidx.compose.foundation.layout.Column
@@ -16,22 +14,48 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.ninjacheetah.tigerdine.components.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.DiningModel
+import dev.ninjacheetah.tigerdine.data.types.DiningLocation
 import dev.ninjacheetah.tigerdine.data.types.OpenStatus
 
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun LocationList(
     viewModel: DiningModel = viewModel(),
-    onClick: ((Int) -> Unit)? = null
+    onClick: ((Int) -> Unit)? = null,
+    searchText: String,
+    openLocationsOnly: Boolean,
+    openLocationsFirst: Boolean
 ) {
-    val filteredLocations = remember(viewModel.locationsByDay) {
+    val filteredLocations = remember(
+        viewModel.locationsByDay,
+        searchText,
+        openLocationsOnly,
+        openLocationsFirst
+    ) {
         fun removeThe(name: String) =
             if (name.startsWith("The ", ignoreCase = true)) name.drop(4) else name
 
-        viewModel.locationsByDay.firstOrNull()
-            ?.sortedWith { a, b ->
-                removeThe(a.name)
-                    .compareTo(removeThe(b.name), ignoreCase = true)
-            }
+        viewModel.locationsByDay
+            .firstOrNull()
+            ?.filter {
+               if (openLocationsOnly) {
+                   it.open == OpenStatus.OPEN || it.open == OpenStatus.CLOSING_SOON
+               } else {
+                   true
+               }
+            }?.filter {
+                searchText.isBlank() || it.name.contains(searchText, ignoreCase = true)
+            }?.sortedWith(
+                compareBy<DiningLocation> {
+                    if (openLocationsFirst) {
+                        !(it.open == OpenStatus.OPEN || it.open == OpenStatus.CLOSING_SOON)
+                    } else {
+                        false
+                    }
+                }.thenBy {
+                    removeThe(it.name).lowercase()
+                }
+            )
             ?: emptyList()
     }
 
