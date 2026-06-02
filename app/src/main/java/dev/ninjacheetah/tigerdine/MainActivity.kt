@@ -31,6 +31,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -40,6 +41,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dev.ninjacheetah.tigerdine.data.DiningModel
@@ -57,25 +59,47 @@ class MainActivity : ComponentActivity() {
             TigerDineTheme {
                 val navController = rememberNavController()
                 val viewModel: DiningModel = viewModel()
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
                         TopAppBar(
                             title = {
-                                Text("TigerDine For Android Beta")
+                                Text(
+                                    when {
+                                        currentRoute == "home" -> "TigerDine For Android Beta"
+                                        currentRoute == "visitingChefs" -> "Visiting Chefs"
+                                        currentRoute?.startsWith("detail/") == true -> "Details"
+                                        else -> "TigerDine"
+                                    }
+                                )
                             },
-                            actions = {
-                                IconButton(
-                                    onClick = { viewModel.getHoursByDay() },
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.refresh_24px),
-                                        contentDescription = "Refresh icon",
-                                        tint = MaterialTheme.colorScheme.onSurface
-                                    )
+                            navigationIcon = {
+                                if (currentRoute != "home") {
+                                    IconButton(
+                                        onClick = { navController.navigateUp() }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.arrow_back_24px),
+                                            contentDescription = "Back",
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
                                 }
                             },
+//                            actions = {
+//                                IconButton(
+//                                    onClick = { viewModel.getHoursByDay() },
+//                                ) {
+//                                    Icon(
+//                                        painter = painterResource(R.drawable.refresh_24px),
+//                                        contentDescription = "Refresh icon",
+//                                        tint = MaterialTheme.colorScheme.onSurface
+//                                    )
+//                                }
+//                            },
                             colors = TopAppBarDefaults.topAppBarColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceContainer
                             )
