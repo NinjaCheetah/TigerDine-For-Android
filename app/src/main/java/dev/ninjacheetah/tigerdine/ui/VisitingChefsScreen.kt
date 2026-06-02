@@ -60,6 +60,7 @@ fun VisitingChefsScreen(viewModel: DiningModel = viewModel()) {
         ) {
             IconButton(
                 onClick = { focusedIndex -= 1 },
+                enabled = focusedIndex >= 0
             ) {
                 Icon(
                     painter = painterResource(R.drawable.chevron_left_24px),
@@ -69,13 +70,14 @@ fun VisitingChefsScreen(viewModel: DiningModel = viewModel()) {
             }
 
             Text(
-                "Visiting Chefs",
+                "Visiting Chefs for ${viewModel.daysRepresented[focusedIndex]}",
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold
             )
 
             IconButton(
                 onClick = { focusedIndex += 1 },
+                enabled = focusedIndex <= 6
             ) {
                 Icon(
                     painter = painterResource(R.drawable.chevron_right_24px),
@@ -84,6 +86,7 @@ fun VisitingChefsScreen(viewModel: DiningModel = viewModel()) {
                 )
             }
         }
+
         if (locationsWithChefsByDay[focusedIndex].isEmpty()) {
             HorizontalDivider()
             Text(
@@ -92,6 +95,7 @@ fun VisitingChefsScreen(viewModel: DiningModel = viewModel()) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
         locations.forEach { location ->
             if (!location.visitingChefs.isNullOrEmpty()) {
                 Column {
