@@ -12,16 +12,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import dev.ninjacheetah.tigerdine.components.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.DiningModel
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
 import dev.ninjacheetah.tigerdine.data.types.OpenStatus
+import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 
 @ExperimentalMaterial3ExpressiveApi
 @Composable
 fun LocationList(
     viewModel: DiningModel = viewModel(),
-    onClick: ((Int) -> Unit)? = null,
+    navController: NavController,
     searchText: String,
     openLocationsOnly: Boolean,
     openLocationsFirst: Boolean
@@ -95,7 +97,9 @@ fun LocationList(
                         )
                     }
                 },
-                onClick = { onClick?.invoke(location.id) },
+                onClick = {
+                    navController.navigate(Routes.detail(location.id))
+                },
                 shapes = ListItemDefaults.segmentedShapes(index = filteredLocations.indexOf(location), count = filteredLocations.count()),
                 content = {
                     Text(

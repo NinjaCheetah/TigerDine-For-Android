@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +38,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import dev.ninjacheetah.tigerdine.R
 import dev.ninjacheetah.tigerdine.data.DiningModel
 import dev.ninjacheetah.tigerdine.ui.components.LoadingScreen
@@ -47,14 +49,17 @@ import dev.ninjacheetah.tigerdine.ui.components.LoadingScreen
 fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: DiningModel = viewModel(),
-    onLocationClick: (Int) -> Unit,
-    onVisitingChefClick: () -> Unit
+    navController: NavController
 ) {
     var searchText by remember { mutableStateOf("") }
     var showFilterMenu by remember { mutableStateOf(false) }
 
     val openLocationsOnly by viewModel.openLocationsOnly.collectAsState()
     val openLocationsFirst by viewModel.openLocationsFirst.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.getHoursByDayIfNeeded()
+    }
 
     Column {
         Surface(
@@ -157,7 +162,9 @@ fun HomeScreen(
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp),
                             shape = RoundedCornerShape(16.dp),
-                            onClick = { onVisitingChefClick() }
+                            onClick = {
+                                navController.navigate("visitingChefs")
+                            }
                         ) {
                             Surface(
                                 modifier = modifier
@@ -186,7 +193,7 @@ fun HomeScreen(
 
                         LocationList(
                             viewModel = viewModel,
-                            onClick = onLocationClick,
+                            navController = navController,
                             searchText = searchText,
                             openLocationsOnly = openLocationsOnly,
                             openLocationsFirst = openLocationsFirst

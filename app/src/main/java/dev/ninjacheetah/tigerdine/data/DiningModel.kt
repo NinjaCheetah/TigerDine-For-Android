@@ -70,6 +70,15 @@ class DiningModel(
         }
     }
 
+    // Helper function that gets run by LaunchedEffect. This makes sure that we only run the
+    // actual getHoursByDay() if we haven't already done so, because it would be silly to reload
+    // the data every single time you navigate back the home screen.
+    fun getHoursByDayIfNeeded() {
+        if (locationsByDay.isEmpty()) {
+            getHoursByDay()
+        }
+    }
+
     fun getHoursByDay() {
         println("loading from network")
         viewModelScope.launch {

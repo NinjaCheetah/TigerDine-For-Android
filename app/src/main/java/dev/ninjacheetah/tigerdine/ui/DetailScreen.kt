@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import dev.ninjacheetah.tigerdine.components.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.DiningModel
 import dev.ninjacheetah.tigerdine.data.types.OpenStatus
@@ -28,7 +29,11 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 @Composable
-fun DetailScreen(locationId: Int, viewModel: DiningModel = viewModel()) {
+fun DetailScreen(
+    viewModel: DiningModel = viewModel(),
+    navController: NavController,
+    locationId: Int,
+) {
     val location = viewModel.locationsByDay.first().find { it.id == locationId }
 
     val weeklyHours: List<WeeklyHours> = remember(viewModel.locationsByDay) {
