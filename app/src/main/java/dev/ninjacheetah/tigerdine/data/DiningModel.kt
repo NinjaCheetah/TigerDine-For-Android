@@ -1,14 +1,11 @@
 package dev.ninjacheetah.tigerdine.data
 
-import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import dev.ninjacheetah.tigerdine.components.getAllDiningInfo
 import dev.ninjacheetah.tigerdine.components.parseLocationInfo
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
 import kotlinx.coroutines.flow.SharingStarted
@@ -22,12 +19,10 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-// TODO: migrate from AndroidViewModel to just ViewModel because it's apparently overkill for my
-// use case, since I shouldn't need the application here.
 class DiningModel(
-    application: Application,
+    private val diningRepository: DiningRepository,
     private val settingsRepository: SettingsRepository
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
     var locationsByDay by mutableStateOf<List<List<DiningLocation>>>(emptyList())
         private set
@@ -77,44 +72,43 @@ class DiningModel(
 
     fun getHoursByDay() {
         println("loading from network")
+        viewModelScope.launch {
+            isRefreshing = true
 
-        isRefreshing = true
+            try {
+                getDaysRepresented()
 
-        getDaysRepresented()
+                val results = mutableListOf<List<DiningLocation>>()
 
-        var completed = 0
-        val results = MutableList<List<DiningLocation>?>(daysRepresented.size) { null }
+                for (day in daysRepresented) {
+                    val parserResult =
+                        diningRepository.getAllDiningInfo(day)
 
-        daysRepresented.forEachIndexed { index, day ->
-            getAllDiningInfo(day, getApplication()) { parserResult ->
-                if (parserResult != null) {
-                    results[index] = parserResult.locations.map {
-                        parseLocationInfo(it, day)
-                    }
+                    results += parserResult
+                        ?.locations
+                        ?.map { parseLocationInfo(it, day) }
+                        ?: emptyList()
                 }
 
-                completed++
-
-                if (completed == daysRepresented.size) {
-                    locationsByDay = results.map { it ?: emptyList() }
-                    lastRefreshed = Clock.System.now()
-                    isLoaded = true
-                    isRefreshing = false
-                }
+                locationsByDay = results
+                lastRefreshed = Clock.System.now()
+                isLoaded = true
+            } finally {
+                isRefreshing = false
             }
         }
     }
 }
 
 class DiningModelFactory(
-    private val application: Application,
+    private val diningRepository: DiningRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DiningModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DiningModel(application, settingsRepository) as T
+            return DiningModel(diningRepository, settingsRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
