@@ -1,13 +1,16 @@
 package dev.ninjacheetah.tigerdine.data
 
-import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
-import dev.ninjacheetah.tigerdine.components.getAllDiningInfo
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import dev.ninjacheetah.tigerdine.components.parseLocationInfo
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -17,8 +20,9 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 class DiningModel(
-    application: Application
-) : AndroidViewModel(application) {
+    private val diningRepository: DiningRepository,
+    private val settingsRepository: SettingsRepository
+) : ViewModel() {
 
     var locationsByDay by mutableStateOf<List<List<DiningLocation>>>(emptyList())
         private set
@@ -27,6 +31,34 @@ class DiningModel(
     var lastRefreshed by mutableStateOf<Instant?>(null)
     var isLoaded by mutableStateOf(false)
     var isRefreshing by mutableStateOf(false)
+
+    val openLocationsOnly =
+        settingsRepository.openLocationsOnly
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                false
+            )
+
+    fun setOpenLocationsOnly(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setOpenLocationsOnly(enabled)
+        }
+    }
+
+    val openLocationsFirst =
+        settingsRepository.openLocationsFirst
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                false
+            )
+
+    fun setOpenLocationsFirst(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setOpenLocationsFirst(enabled)
+        }
+    }
 
     fun getDaysRepresented() {
         val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
@@ -38,33 +70,55 @@ class DiningModel(
         }
     }
 
+    // Helper function that gets run by LaunchedEffect. This makes sure that we only run the
+    // actual getHoursByDay() if we haven't already done so, because it would be silly to reload
+    // the data every single time you navigate back the home screen.
+    fun getHoursByDayIfNeeded() {
+        if (locationsByDay.isEmpty()) {
+            getHoursByDay()
+        }
+    }
+
     fun getHoursByDay() {
         println("loading from network")
+        viewModelScope.launch {
+            isRefreshing = true
 
-        isRefreshing = true
+            try {
+                getDaysRepresented()
 
-        getDaysRepresented()
+                val results = mutableListOf<List<DiningLocation>>()
 
-        var completed = 0
-        val results = MutableList<List<DiningLocation>?>(daysRepresented.size) { null }
+                for (day in daysRepresented) {
+                    val parserResult =
+                        diningRepository.getAllDiningInfo(day)
 
-        daysRepresented.forEachIndexed { index, day ->
-            getAllDiningInfo(day, getApplication()) { parserResult ->
-                if (parserResult != null) {
-                    results[index] = parserResult.locations.map {
-                        parseLocationInfo(it, day)
-                    }
+                    results += parserResult
+                        ?.locations
+                        ?.map { parseLocationInfo(it, day) }
+                        ?: emptyList()
                 }
 
-                completed++
-
-                if (completed == daysRepresented.size) {
-                    locationsByDay = results.map { it ?: emptyList() }
-                    lastRefreshed = Clock.System.now()
-                    isLoaded = true
-                    isRefreshing = false
-                }
+                locationsByDay = results
+                lastRefreshed = Clock.System.now()
+                isLoaded = true
+            } finally {
+                isRefreshing = false
             }
         }
+    }
+}
+
+class DiningModelFactory(
+    private val diningRepository: DiningRepository,
+    private val settingsRepository: SettingsRepository
+) : ViewModelProvider.Factory {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(DiningModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return DiningModel(diningRepository, settingsRepository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

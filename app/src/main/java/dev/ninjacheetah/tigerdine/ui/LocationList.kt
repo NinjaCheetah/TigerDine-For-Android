@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
-
 package dev.ninjacheetah.tigerdine.ui
 
 import androidx.compose.foundation.layout.Column
@@ -14,24 +12,52 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import dev.ninjacheetah.tigerdine.components.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.DiningModel
+import dev.ninjacheetah.tigerdine.data.types.DiningLocation
 import dev.ninjacheetah.tigerdine.data.types.OpenStatus
+import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun LocationList(
     viewModel: DiningModel = viewModel(),
-    onClick: ((Int) -> Unit)? = null
+    navController: NavController,
+    searchText: String,
+    openLocationsOnly: Boolean,
+    openLocationsFirst: Boolean
 ) {
-    val filteredLocations = remember(viewModel.locationsByDay) {
+    val filteredLocations = remember(
+        viewModel.locationsByDay,
+        searchText,
+        openLocationsOnly,
+        openLocationsFirst
+    ) {
         fun removeThe(name: String) =
             if (name.startsWith("The ", ignoreCase = true)) name.drop(4) else name
 
-        viewModel.locationsByDay.firstOrNull()
-            ?.sortedWith { a, b ->
-                removeThe(a.name)
-                    .compareTo(removeThe(b.name), ignoreCase = true)
-            }
+        viewModel.locationsByDay
+            .firstOrNull()
+            ?.filter {
+               if (openLocationsOnly) {
+                   it.open == OpenStatus.OPEN || it.open == OpenStatus.CLOSING_SOON
+               } else {
+                   true
+               }
+            }?.filter {
+                searchText.isBlank() || it.name.contains(searchText, ignoreCase = true)
+            }?.sortedWith(
+                compareBy<DiningLocation> {
+                    if (openLocationsFirst) {
+                        !(it.open == OpenStatus.OPEN || it.open == OpenStatus.CLOSING_SOON)
+                    } else {
+                        false
+                    }
+                }.thenBy {
+                    removeThe(it.name).lowercase()
+                }
+            )
             ?: emptyList()
     }
 
@@ -71,7 +97,9 @@ fun LocationList(
                         )
                     }
                 },
-                onClick = { onClick?.invoke(location.id) },
+                onClick = {
+                    navController.navigate(Routes.detail(location.id))
+                },
                 shapes = ListItemDefaults.segmentedShapes(index = filteredLocations.indexOf(location), count = filteredLocations.count()),
                 content = {
                     Text(

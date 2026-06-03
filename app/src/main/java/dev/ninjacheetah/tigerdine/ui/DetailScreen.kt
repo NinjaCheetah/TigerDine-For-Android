@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.ninjacheetah.tigerdine.R
+import androidx.navigation.NavController
 import dev.ninjacheetah.tigerdine.components.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.DiningModel
 import dev.ninjacheetah.tigerdine.data.types.OpenStatus
@@ -47,7 +48,11 @@ import kotlinx.datetime.toLocalDateTime
 
 @ExperimentalMaterial3ExpressiveApi
 @Composable
-fun DetailScreen(locationId: Int, viewModel: DiningModel = viewModel()) {
+fun DetailScreen(
+    viewModel: DiningModel = viewModel(),
+    navController: NavController,
+    locationId: Int,
+) {
     val location = viewModel.locationsByDay.first().find { it.id == locationId }
     val configuration = LocalConfiguration.current
     var expandHours by remember { mutableStateOf(true) }
