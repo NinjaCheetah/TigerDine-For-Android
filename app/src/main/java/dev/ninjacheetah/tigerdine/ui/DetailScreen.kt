@@ -1,24 +1,42 @@
 package dev.ninjacheetah.tigerdine.ui
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.ninjacheetah.tigerdine.R
 import androidx.navigation.NavController
 import dev.ninjacheetah.tigerdine.components.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.DiningModel
@@ -28,6 +46,7 @@ import dev.ninjacheetah.tigerdine.data.types.WeeklyHours
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun DetailScreen(
     viewModel: DiningModel = viewModel(),
@@ -35,6 +54,10 @@ fun DetailScreen(
     locationId: Int,
 ) {
     val location = viewModel.locationsByDay.first().find { it.id == locationId }
+    val configuration = LocalConfiguration.current
+    var expandHours by remember { mutableStateOf(true) }
+    var expandChefs by remember { mutableStateOf(false) }
+    var expandDailies by remember { mutableStateOf(false) }
 
     val weeklyHours: List<WeeklyHours> = remember(viewModel.locationsByDay) {
         var newWeeklyHours: List<WeeklyHours> = emptyList()
@@ -75,123 +98,429 @@ fun DetailScreen(
     }
 
     if (location != null) {
+
         Column(
-            modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())
+            modifier = Modifier
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            Text(
-                location.name,
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                location.summary,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            when (location.open) {
-                OpenStatus.OPEN -> Text("Open", color = Color.Green, style = MaterialTheme.typography.titleLarge)
-                OpenStatus.CLOSED -> Text("Closed", color = Color.Red, style = MaterialTheme.typography.titleLarge)
-                OpenStatus.OPENING_SOON -> Text(
-                    "Opening Soon",
-                    color = Color.hsl(32f, 1.00f, 0.48f),
-                    style = MaterialTheme.typography.titleLarge
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 )
-                OpenStatus.CLOSING_SOON -> Text(
-                    "Closing Soon",
-                    color = Color.hsl(32f, 1.00f, 0.48f),
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
-            if (location.diningTimes != null) {
-                location.diningTimes.forEach { opening ->
-                    Text("${opening.openTime.formatTigerDine()} - ${opening.closeTime.formatTigerDine()}",
-                        style = MaterialTheme.typography.bodyLarge)
-                }
-            } else {
-                Text("Not Open Today")
-            }
-            if (!location.visitingChefs.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "Today's Visiting Chefs",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                location.visitingChefs.forEach { chef ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Top
+            ) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier.width((configuration.screenWidthDp/2).dp)
                     ) {
-                        Text(chef.name, style = MaterialTheme.typography.bodyLarge)
-                        Spacer(modifier = Modifier.weight(1f))
-                        Column {
-                            when (chef.status) {
-                                VisitingChefStatus.HERE_NOW -> Text("Here Now", color = Color.Green, style = MaterialTheme.typography.bodyLarge)
-                                VisitingChefStatus.GONE -> Text("Left For Today", color = Color.Red, style = MaterialTheme.typography.bodyLarge)
-                                VisitingChefStatus.ARRIVING_LATER -> Text("Arriving Later", color = Color.Red, style = MaterialTheme.typography.bodyLarge)
-                                VisitingChefStatus.ARRIVING_SOON -> Text(
-                                    "Arriving Soon",
+                        Column() {
+                            Text(
+                                location.name,
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                location.summary,
+                                style = MaterialTheme.typography.headlineSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    Spacer(Modifier.weight(1f))
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                    ) {
+                        when (location.open) {
+                            OpenStatus.OPEN -> Text(
+                                "Open",
+                                color = Color.Green,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+
+                            OpenStatus.CLOSED -> Text(
+                                "Closed",
+                                color = Color.Red,
+                                style = MaterialTheme.typography.titleLarge
+                            )
+
+                            OpenStatus.OPENING_SOON -> Text(
+                                "Opening Soon",
+                                color = Color.hsl(32f, 1.00f, 0.48f),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+
+                            OpenStatus.CLOSING_SOON -> Text(
+                                "Closing Soon",
+                                color = Color.hsl(32f, 1.00f, 0.48f),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        }
+                        if (location.diningTimes != null) {
+                            location.diningTimes.forEach { opening ->
+                                Text(
+                                    "${opening.openTime.formatTigerDine()} - ${opening.closeTime.formatTigerDine()}",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        } else {
+                            Text("Not Open Today")
+                        }
+                    }
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(0.dp, 16.dp),
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+            ) {
+                SegmentedListItem(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    leadingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.schedule_24px),
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.keyboard_arrow_up_24px),
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.rotate(if(expandHours) 0F else 180F)
+                        )
+                    },
+                    onClick = {
+                        expandHours = if (expandHours) {
+                            false
+                        } else {
+                            true
+                        }
+                    },
+                    shapes = ListItemDefaults.segmentedShapes(
+                        index = 0,
+                        count = if (!location.visitingChefs.isNullOrEmpty() || !location.dailySpecials.isNullOrEmpty() || expandHours) 2 else 1
+                    ),
+                    content = {
+                        Row() {
+                            when (location.open) {
+                                OpenStatus.OPEN -> Text(
+                                    "Open",
+                                    color = Color.Green,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+
+                                OpenStatus.CLOSED -> Text(
+                                    "Closed",
+                                    color = Color.Red,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+
+                                OpenStatus.OPENING_SOON -> Text(
+                                    "Opening Soon",
                                     color = Color.hsl(32f, 1.00f, 0.48f),
                                     style = MaterialTheme.typography.bodyLarge
                                 )
-                                VisitingChefStatus.LEAVING_SOON -> Text(
-                                    "Leaving Soon",
+
+                                OpenStatus.CLOSING_SOON -> Text(
+                                    "Closing Soon",
                                     color = Color.hsl(32f, 1.00f, 0.48f),
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
-                            Text("${chef.openTime.formatTigerDine()} - ${chef.closeTime.formatTigerDine()}",
-                                style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                text = " • "
+                            )
+                            Text(
+                                text = "Opens/Closes XX:XX"
+                            )
                         }
-                    }
-                    HorizontalDivider()
-                }
-            }
-            if (!location.dailySpecials.isNullOrEmpty()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    "Today's Daily Specials",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
+
+                    },
+                    colors = ListItemDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    ),
                 )
-                location.dailySpecials.forEach { special ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Text(special.name, style = MaterialTheme.typography.bodyLarge)
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(special.type, style = MaterialTheme.typography.bodyLarge)
+                if (expandHours) {
+                    SegmentedListItem(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        leadingContent = {
+
+                        },
+                        trailingContent = {
+
+                        },
+                        onClick = {},
+                        shapes = ListItemDefaults.segmentedShapes(
+                            index = 1,
+                            count = if (!location.visitingChefs.isNullOrEmpty() || !location.dailySpecials.isNullOrEmpty()) 3 else 2
+                        ),
+                        content = {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                for (day in weeklyHours) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        if (weeklyHours.indexOf(day) == 0) {
+                                            Text(
+                                                text = day.day,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            Column {
+                                                for (timeString in day.timeStrings) {
+                                                    Text(
+                                                        text = timeString, style = MaterialTheme.typography.bodyLarge,
+                                                        fontWeight = FontWeight.Bold
+                                                    )
+                                                }
+                                            }
+                                        } else {
+                                            Text(
+                                                text = day.day,
+                                            )
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            Column {
+                                                for (timeString in day.timeStrings) {
+                                                    Text(
+                                                        text = timeString,
+                                                        style = MaterialTheme.typography.bodyLarge,
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        colors = ListItemDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        ),
+                    )
+                }
+                if (!location.visitingChefs.isNullOrEmpty()) {
+                    SegmentedListItem(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.hand_meal_24px),
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        trailingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.keyboard_arrow_up_24px),
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.rotate(if(expandChefs) 0F else 180F)
+                            )
+                        },
+                        onClick = {
+                            expandChefs = if (expandChefs) {
+                                false
+                            } else {
+                                true
+                            }
+                        },
+                        shapes = ListItemDefaults.segmentedShapes(
+                            index = 3,
+                            count = 2
+                        ),
+                        content = {
+                            Text(
+                                "Today's Visiting Chefs",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        },
+                        colors = ListItemDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        ),
+                    )
+                    if (expandChefs) {
+                        SegmentedListItem(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            leadingContent = {  },
+                            trailingContent = {  },
+                            onClick = { },
+                            shapes = ListItemDefaults.segmentedShapes(
+                                index = 4,
+                                count = 6
+                            ),
+                            content = {
+                                Column() {
+                                    location.visitingChefs.forEach { chef ->
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column() {
+                                                Text(chef.name, style = MaterialTheme.typography.bodyLarge)
+                                                when (chef.status) {
+                                                    VisitingChefStatus.HERE_NOW -> Text(
+                                                        "Here Now",
+                                                        color = Color.Green,
+                                                        style = MaterialTheme.typography.bodyLarge
+                                                    )
+
+                                                    VisitingChefStatus.GONE -> Text(
+                                                        "Left For Today",
+                                                        color = Color.Red,
+                                                        style = MaterialTheme.typography.bodyLarge
+                                                    )
+
+                                                    VisitingChefStatus.ARRIVING_LATER -> Text(
+                                                        "Arriving Later",
+                                                        color = Color.Red,
+                                                        style = MaterialTheme.typography.bodyLarge
+                                                    )
+
+                                                    VisitingChefStatus.ARRIVING_SOON -> Text(
+                                                        "Arriving Soon",
+                                                        color = Color.hsl(32f, 1.00f, 0.48f),
+                                                        style = MaterialTheme.typography.bodyLarge
+                                                    )
+
+                                                    VisitingChefStatus.LEAVING_SOON -> Text(
+                                                        "Leaving Soon",
+                                                        color = Color.hsl(32f, 1.00f, 0.48f),
+                                                        style = MaterialTheme.typography.bodyLarge
+                                                    )
+                                                }
+                                            }
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            Column {
+                                                Text(
+                                                    "${chef.openTime.formatTigerDine()} - ${chef.closeTime.formatTigerDine()}",
+                                                    style = MaterialTheme.typography.bodyLarge
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                            colors = ListItemDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            ),
+                        )
                     }
-                    HorizontalDivider()
+                }
+                if (!location.dailySpecials.isNullOrEmpty()) {
+                    SegmentedListItem(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        leadingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.restaurant_24px),
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        trailingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.keyboard_arrow_up_24px),
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.rotate(if(expandDailies) 0F else 180F)
+                            )
+                        },
+                        onClick = {
+                            expandDailies = if (expandDailies) {
+                                false
+                            } else {
+                                true
+                            }
+                        },
+                        shapes = ListItemDefaults.segmentedShapes(
+                            index = 4,
+                            count = if (expandDailies) 6 else 5
+                        ),
+                        content = {
+                            Text(
+                                "Today's Daily Specials",
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        },
+                        colors = ListItemDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        ),
+                    )
+                    if (expandDailies) {
+                        SegmentedListItem(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            leadingContent = {  },
+                            trailingContent = {  },
+                            onClick = { },
+                            shapes = ListItemDefaults.segmentedShapes(
+                                index = 5,
+                                count = if (expandDailies) 6 else 5
+                            ),
+                            content = {
+                                Column() {
+                                    location.dailySpecials.forEach { special ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = special.name,
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                fontWeight = FontWeight.SemiBold,
+                                                )
+                                            Spacer(modifier = Modifier.weight(1f))
+                                            Text(
+                                                text = special.type,
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                textAlign = TextAlign.Right
+                                            )
+
+                                        }
+                                    }
+                                }
+                            },
+                            colors = ListItemDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            ),
+                        )
+                    }
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                "Upcoming Hours",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold
-            )
 
-            for (day in weeklyHours) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Text(day.day)
-                    Spacer(modifier = Modifier.weight(1f))
-                    Column {
-                        for (timeString in day.timeStrings) {
-                            Text(timeString, style = MaterialTheme.typography.bodyLarge)
-                        }
-                    }
-                }
-                HorizontalDivider()
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                )
+            ){
+                Text(
+                    text = location.desc,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(location.desc)
         }
     } else {
         Text("Location not found")
