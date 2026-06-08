@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.ninjacheetah.tigerdine.R
 import androidx.navigation.NavController
+import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
 import dev.ninjacheetah.tigerdine.util.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
@@ -104,14 +105,16 @@ fun DetailScreen(
             TopBarState(
                 title = "Details",
                 actions = {
-                    IconButton(
-                        onClick = { navController.navigate(Routes.MENU) }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.menu_book_2_24px),
-                            contentDescription = "Show menu",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                    if (tCtoFDMPMap.contains(viewModel.focusedLocationId)) {
+                        IconButton(
+                            onClick = { navController.navigate(Routes.MENU) }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.menu_book_2_24px),
+                                contentDescription = "Show menu",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
             )
