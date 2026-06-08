@@ -180,13 +180,13 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
         val (closeHour, closeMinute, closeSecond) = closeStrings[i].split(":").map { it.toInt() }
 
         val zone = TimeZone.currentSystemDefault()
-        val today = Clock.System.now().toLocalDateTime(zone).date
+        val date = forDate?.toLocalDateTime(zone)?.date ?: Clock.System.now().toLocalDateTime(zone).date
 
         openTimes.add(
             LocalDateTime(
-                today.year,
-                today.month,
-                today.day,
+                date.year,
+                date.month,
+                date.day,
                 openHour,
                 openMinute,
                 openSecond
@@ -195,9 +195,9 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
 
         closeTimes.add(
             LocalDateTime(
-                today.year,
-                today.month,
-                today.day,
+                date.year,
+                date.month,
+                date.day,
                 closeHour,
                 closeMinute,
                 closeSecond

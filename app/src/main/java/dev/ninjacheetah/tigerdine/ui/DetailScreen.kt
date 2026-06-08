@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.ninjacheetah.tigerdine.R
 import androidx.navigation.NavController
+import dev.ninjacheetah.tigerdine.components.formatNextOpen
 import dev.ninjacheetah.tigerdine.components.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.DiningModel
 import dev.ninjacheetah.tigerdine.data.types.OpenStatus
@@ -242,9 +243,42 @@ fun DetailScreen(
                             Text(
                                 text = " • "
                             )
-                            Text(
-                                text = "Opens/Closes XX:XX"
-                            )
+                            if (location.open == OpenStatus.OPEN || location.open == OpenStatus.CLOSING_SOON) {
+                                Text(
+                                    text = "Closes ${location.diningTimes?.first()?.closeTime?.formatTigerDine()}"
+                                )
+                            } else {
+                                var opensNext = ""
+
+                                for (day in viewModel.locationsByDay) {
+                                    if (opensNext != "") {
+                                        break
+                                    }
+
+                                    if (viewModel.locationsByDay.indexOf(day) == 0) {
+                                        println("triggered")
+                                        continue
+                                    }
+
+                                    for (loc in day) {
+                                        if (loc.id == locationId) {
+                                            if (!loc.diningTimes.isNullOrEmpty()) {
+                                                opensNext = "Opens ${loc.diningTimes.first().openTime.formatNextOpen()}"
+                                                break
+                                            }
+                                        }
+                                    }
+                                }
+                                if (opensNext != "") {
+                                    Text(
+                                        text = opensNext
+                                    )
+                                } else {
+                                    Text(
+                                        text = "Closed this week"
+                                    )
+                                }
+                            }
                         }
 
                     },

@@ -46,5 +46,22 @@ fun Instant.formatVisitingChef(): String {
     return "$weekday, $month ${date.day}"
 }
 
+fun Instant.formatNextOpen(): String {
+    val timeZone = TimeZone.of("America/New_York")
+    val date = this.toLocalDateTime(timeZone).date
+
+    val weekday = when (date.dayOfWeek) {
+        DayOfWeek.MONDAY -> "Mon"
+        DayOfWeek.TUESDAY -> "Tue"
+        DayOfWeek.WEDNESDAY -> "Wed"
+        DayOfWeek.THURSDAY -> "Thu"
+        DayOfWeek.FRIDAY -> "Fri"
+        DayOfWeek.SATURDAY -> "Sat"
+        DayOfWeek.SUNDAY -> "Sun"
+    }
+
+    return "${this.formatTigerDine()} $weekday"
+}
+
 fun LocalDateTime.toYyyyMmDd(): String =
     "%04d-%02d-%02d".format(year, month.number, day)
