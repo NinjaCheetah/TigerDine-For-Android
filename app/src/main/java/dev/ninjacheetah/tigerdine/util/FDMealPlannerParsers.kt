@@ -26,9 +26,9 @@ fun parseFDMealPlannerMenu(menu: FDMealsParser): List<FDMenuItem> {
             // items for some reason. If that's the case, then we should fall back on componentName,
             // which is less user-friendly but works as a backup.
             val realName = if (recipe.englishAlternateName != "") {
-                recipe.englishAlternateName.filter { !it.isWhitespace() }
+                recipe.englishAlternateName.trim()
             } else {
-                recipe.componentName.filter { !it.isWhitespace() }
+                recipe.componentName.trim()
             }
             val allergens: List<String> = if (recipe.allergenName != "") recipe.allergenName.split(",") else emptyList()
 
@@ -38,7 +38,7 @@ fun parseFDMealPlannerMenu(menu: FDMealsParser): List<FDMenuItem> {
                 recipe.recipeProductDietaryName
                     .split(",")
                     .map { marker ->
-                        marker.filter { !it.isWhitespace() }
+                        marker.trim()
                     }
             } else {
                 emptyList()

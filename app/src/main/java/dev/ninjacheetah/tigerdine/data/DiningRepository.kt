@@ -30,6 +30,7 @@ class DiningRepository(
                     ?: Clock.System.now().toLocalDateTime(zone)
 
             val url = "https://tigercenter.rit.edu/tigerCenterApi/tc/dining-all?date=${targetDate.toYyyyMmDd()}"
+            //val url = "https://tigercenter.rit.edu/tigerCenterApi/tc/dining-all?date=2026-04-24"
 
             val request = JsonObjectRequest(
                 Request.Method.GET,
@@ -57,13 +58,17 @@ class DiningRepository(
         suspendCancellableCoroutine { continuation ->
             val url = "https://apiservicelocatorstenantrit.fdmealplanner.com/api/v1/data-locator-webapi/20/mealPeriods?LocationId=${locationId}"
 
+            println("making openings request to: $url")
+
             val request = JsonObjectRequest(
                 Request.Method.GET,
                 url,
                 null,
                 { response ->
                     continuation.resume(
-                        Json.decodeFromString<FDMealPeriodsParser>(
+                        Json {
+                            ignoreUnknownKeys = true
+                        }.decodeFromString<FDMealPeriodsParser>(
                             response.toString()
                         )
                     )
@@ -91,13 +96,17 @@ class DiningRepository(
                     "/20/meals?menuId=0&accountId=${accountId}&locationId=${locationId}&mealPeriodId=${mealPeriodId}" +
                     "&tenantId=20&monthId=${date.month.number}&startDate=${dateString}&endDate=${dateString}"
 
+            println("making menu request to: $url")
+
             val request = JsonObjectRequest(
                 Request.Method.GET,
                 url,
                 null,
                 { response ->
                     continuation.resume(
-                        Json.decodeFromString<FDMealsParser>(
+                        Json {
+                            ignoreUnknownKeys = true
+                        }.decodeFromString<FDMealsParser>(
                             response.toString()
                         )
                     )

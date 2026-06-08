@@ -98,7 +98,8 @@ fun LocationList(
                     }
                 },
                 onClick = {
-                    navController.navigate(Routes.detail(location.id))
+                    viewModel.focusedLocationId = location.id
+                    navController.navigate(Routes.DETAIL)
                 },
                 shapes = ListItemDefaults.segmentedShapes(index = filteredLocations.indexOf(location), count = filteredLocations.count()),
                 content = {

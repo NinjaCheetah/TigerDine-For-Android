@@ -44,7 +44,7 @@ import dev.ninjacheetah.tigerdine.data.state.TopBarState
 import dev.ninjacheetah.tigerdine.data.types.OpenStatus
 import dev.ninjacheetah.tigerdine.data.types.VisitingChefStatus
 import dev.ninjacheetah.tigerdine.data.types.WeeklyHours
-import dev.ninjacheetah.tigerdine.ui.navigation.Routes.menu
+import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -53,9 +53,8 @@ import kotlinx.datetime.toLocalDateTime
 fun DetailScreen(
     viewModel: DiningModel = viewModel(),
     navController: NavController,
-    locationId: Int,
 ) {
-    val location = viewModel.locationsByDay.first().find { it.id == locationId }
+    val location = viewModel.locationsByDay.first().find { it.id == viewModel.focusedLocationId }
     var expandHours by remember { mutableStateOf(true) }
     var expandChefs by remember { mutableStateOf(false) }
     var expandDailies by remember { mutableStateOf(false) }
@@ -65,7 +64,7 @@ fun DetailScreen(
 
         for (day in viewModel.locationsByDay) {
             for (location in day) {
-                if (location.id == locationId) {
+                if (location.id == viewModel.focusedLocationId) {
                     val weekdayStr: String = location.date.toLocalDateTime(TimeZone.currentSystemDefault())
                         .dayOfWeek
                         .name
@@ -106,7 +105,7 @@ fun DetailScreen(
                 title = "Details",
                 actions = {
                     IconButton(
-                        onClick = { navController.navigate(menu(locationId)) }
+                        onClick = { navController.navigate(Routes.MENU) }
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.menu_book_2_24px),

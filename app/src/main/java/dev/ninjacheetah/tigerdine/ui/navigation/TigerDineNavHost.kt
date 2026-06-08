@@ -36,37 +36,17 @@ fun TigerDineNavHost(
             )
         }
 
-        composable(
-            route = Routes.DETAIL,
-            arguments = listOf(
-                navArgument("locationId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { entry ->
-            val locationId = entry.arguments!!.getInt("locationId")
-
+        composable(Routes.DETAIL) {
             DetailScreen(
                 viewModel = viewModel,
-                navController = navController,
-                locationId = locationId
+                navController = navController
             )
         }
 
-        composable(
-            route = Routes.MENU,
-            arguments = listOf(
-                navArgument("locationId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { entry ->
-            val locationId = entry.arguments!!.getInt("locationId")
-
+        composable(Routes.MENU) {
             MenuScreen(
                 navController = navController,
-                viewModel = viewModel,
-                locationId = locationId
+                viewModel = viewModel
             )
         }
 
