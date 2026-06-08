@@ -34,8 +34,8 @@ data class FDSearchResponseParser(
 @Serializable
 data class FDMealPeriodsParser(
     val success: Boolean,
-    val errorMessage: String?,
-    val data: Data
+    val errorMessages: String?,
+    val data: List<Data>
 ) {
     @Serializable
     data class Data(

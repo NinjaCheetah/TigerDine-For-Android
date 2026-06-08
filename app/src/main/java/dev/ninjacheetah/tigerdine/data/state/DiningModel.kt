@@ -1,6 +1,7 @@
 package dev.ninjacheetah.tigerdine.data.state
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -8,8 +9,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import dev.ninjacheetah.tigerdine.data.DiningRepository
 import dev.ninjacheetah.tigerdine.data.SettingsRepository
+import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
 import dev.ninjacheetah.tigerdine.util.parseLocationInfo
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
+import dev.ninjacheetah.tigerdine.data.types.FDMenuItem
+import dev.ninjacheetah.tigerdine.util.parseFDMealPlannerMenu
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -26,6 +30,14 @@ class DiningModel(
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
+    // ------------------------------------------------------------------------
+    // Main Dining Information Section
+    //
+    //      Holds the key stuff like the locations themselves and their hours.
+    //      Any data found in this section is sourced from the TigerCenter
+    //      API.
+    // ------------------------------------------------------------------------
+
     var locationsByDay by mutableStateOf<List<List<DiningLocation>>>(emptyList())
         private set
 
@@ -33,6 +45,7 @@ class DiningModel(
     var lastRefreshed by mutableStateOf<Instant?>(null)
     var isLoaded by mutableStateOf(false)
     var isRefreshing by mutableStateOf(false)
+    var focusedLocationId by mutableIntStateOf(0)
 
     val openLocationsOnly =
         settingsRepository.openLocationsOnly
@@ -106,6 +119,55 @@ class DiningModel(
                 isLoaded = true
             } finally {
                 isRefreshing = false
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------------
+    // FDMealPlanner Menus Section
+    //
+    //      Holds data like valid meal periods and the current menu for a
+    //      given location. May or may not be populated depending on the
+    //      current state of the app.
+    // ------------------------------------------------------------------------
+
+    var openPeriods: List<Int> by mutableStateOf(emptyList())
+    var selectedMealPeriod by mutableIntStateOf(0)
+    var menuItems: List<FDMenuItem> by mutableStateOf(emptyList())
+    var menuIsLoaded by mutableStateOf(false)
+    var menuIsLoading by mutableStateOf(true)
+
+    fun getOpenPeriods() {
+        if (openPeriods.isEmpty()) {
+            viewModelScope.launch {
+                val openingsParser = diningRepository.getFDMealPlannerOpenings(tCtoFDMPMap[focusedLocationId]!!.first)
+
+                if (openingsParser != null) {
+                    openPeriods = openingsParser.data.map { it.id }
+                    println(openingsParser.data)
+                    println(openPeriods)
+                    selectedMealPeriod = openPeriods.first()
+                    getMenuForPeriod()
+                }
+            }
+        }
+    }
+
+    fun getMenuForPeriod() {
+        viewModelScope.launch {
+            menuIsLoaded = false
+            menuIsLoading = true
+
+            val rawMenuItems = diningRepository.getFDMealPlannerMenu(
+                locationId = tCtoFDMPMap[focusedLocationId]!!.first,
+                accountId = tCtoFDMPMap[focusedLocationId]!!.second,
+                mealPeriodId = selectedMealPeriod
+            )
+
+            if (rawMenuItems != null) {
+                menuItems = parseFDMealPlannerMenu(rawMenuItems)
+                menuIsLoading = false
+                menuIsLoaded = true
             }
         }
     }
