@@ -2,7 +2,7 @@ package dev.ninjacheetah.tigerdine.ui.menus
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
-import dev.ninjacheetah.tigerdine.data.DiningModel
+import dev.ninjacheetah.tigerdine.data.state.DiningModel
 
 @Composable
 fun MenuItemScreen(

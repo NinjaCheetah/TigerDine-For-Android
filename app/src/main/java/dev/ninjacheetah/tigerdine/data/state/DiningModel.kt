@@ -1,4 +1,4 @@
-package dev.ninjacheetah.tigerdine.data
+package dev.ninjacheetah.tigerdine.data.state
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -6,7 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import dev.ninjacheetah.tigerdine.components.parseLocationInfo
+import dev.ninjacheetah.tigerdine.data.DiningRepository
+import dev.ninjacheetah.tigerdine.data.SettingsRepository
+import dev.ninjacheetah.tigerdine.util.parseLocationInfo
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn

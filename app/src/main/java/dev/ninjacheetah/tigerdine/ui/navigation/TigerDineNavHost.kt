@@ -9,7 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import dev.ninjacheetah.tigerdine.data.DiningModel
+import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.ui.DetailScreen
 import dev.ninjacheetah.tigerdine.ui.HomeScreen
 import dev.ninjacheetah.tigerdine.ui.VisitingChefsScreen

@@ -13,8 +13,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import dev.ninjacheetah.tigerdine.components.formatTigerDine
-import dev.ninjacheetah.tigerdine.data.DiningModel
+import dev.ninjacheetah.tigerdine.util.formatTigerDine
+import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
 import dev.ninjacheetah.tigerdine.data.types.OpenStatus
 import dev.ninjacheetah.tigerdine.ui.navigation.Routes

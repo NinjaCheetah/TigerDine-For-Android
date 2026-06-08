@@ -15,12 +15,12 @@ object Routes {
     fun menuItem(locationId: Int, itemId: Int) = "menuItem/$locationId/$itemId"
 }
 
-fun routeTitle(route: String?): String =
-    when {
-        route == Routes.HOME -> "TigerDine For Android Beta"
-        route == Routes.VISITING_CHEFS -> "Visiting Chefs"
-        route?.startsWith("detail/") == true -> "Details"
-        route?.startsWith("menu/") == true -> "Menu"
-        route?.startsWith("menuItem/") == true -> "Details"
-        else -> "TigerDine"
-    }
+//fun routeTitle(route: String?): String =
+//    when {
+//        route == Routes.HOME -> "TigerDine For Android Beta"
+//        route == Routes.VISITING_CHEFS -> "Visiting Chefs"
+//        route?.startsWith("detail/") == true -> "Details"
+//        route?.startsWith("menu/") == true -> "Menu"
+//        route?.startsWith("menuItem/") == true -> "Details"
+//        else -> "TigerDine"
+//    }
