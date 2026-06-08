@@ -1,4 +1,4 @@
-package dev.ninjacheetah.tigerdine.components
+package dev.ninjacheetah.tigerdine.util
 
 import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
 import dev.ninjacheetah.tigerdine.data.types.DailySpecial

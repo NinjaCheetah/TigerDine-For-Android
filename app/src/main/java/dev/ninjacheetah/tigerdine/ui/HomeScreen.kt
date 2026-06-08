@@ -40,7 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import dev.ninjacheetah.tigerdine.R
-import dev.ninjacheetah.tigerdine.data.DiningModel
+import dev.ninjacheetah.tigerdine.data.state.DiningModel
+import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
+import dev.ninjacheetah.tigerdine.data.state.TopBarState
 import dev.ninjacheetah.tigerdine.ui.components.LoadingScreen
 
 @ExperimentalMaterial3Api
@@ -57,7 +59,16 @@ fun HomeScreen(
     val openLocationsOnly by viewModel.openLocationsOnly.collectAsState()
     val openLocationsFirst by viewModel.openLocationsFirst.collectAsState()
 
+    val updateTopBar = LocalTopBarStateUpdater.current
+
     LaunchedEffect(Unit) {
+        updateTopBar(
+            TopBarState(
+                title = "TigerDine for Android Beta",
+                actions = {}
+            )
+        )
+
         viewModel.getHoursByDayIfNeeded()
     }
 
