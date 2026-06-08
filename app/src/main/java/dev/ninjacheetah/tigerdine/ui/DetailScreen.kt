@@ -35,18 +35,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.ninjacheetah.tigerdine.R
 import androidx.navigation.NavController
+import dev.ninjacheetah.tigerdine.R
 import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
-import dev.ninjacheetah.tigerdine.util.formatTigerDine
-import dev.ninjacheetah.tigerdine.data.state.DiningModel
-import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
-import dev.ninjacheetah.tigerdine.data.state.TopBarState
-import dev.ninjacheetah.tigerdine.components.formatNextOpen
-import dev.ninjacheetah.tigerdine.components.formatTigerDine
-import dev.ninjacheetah.tigerdine.data.DiningModel
-import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
-import dev.ninjacheetah.tigerdine.util.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
@@ -54,6 +45,8 @@ import dev.ninjacheetah.tigerdine.data.types.OpenStatus
 import dev.ninjacheetah.tigerdine.data.types.VisitingChefStatus
 import dev.ninjacheetah.tigerdine.data.types.WeeklyHours
 import dev.ninjacheetah.tigerdine.ui.navigation.Routes
+import dev.ninjacheetah.tigerdine.util.formatNextOpen
+import dev.ninjacheetah.tigerdine.util.formatTigerDine
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -290,7 +283,7 @@ fun DetailScreen(
                                     }
 
                                     for (loc in day) {
-                                        if (loc.id == locationId) {
+                                        if (loc.id == viewModel.focusedLocationId) {
                                             if (!loc.diningTimes.isNullOrEmpty()) {
                                                 opensNext = "Opens ${loc.diningTimes.first().openTime.formatNextOpen()}"
                                                 break
