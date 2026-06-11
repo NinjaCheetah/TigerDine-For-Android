@@ -125,7 +125,6 @@ fun DetailScreen(
     }
 
     if (location != null) {
-
         Column(
             modifier = Modifier
                 .padding(16.dp)

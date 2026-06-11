@@ -9,8 +9,8 @@ object Routes {
 
     const val MENU = "menu"
 
-    const val MENU_ITEM = "menuItem/{locationId}/{itemId}"
-    fun menuItem(locationId: Int, itemId: Int) = "menuItem/$locationId/$itemId"
+    const val MENU_ITEM = "menuItem/{itemId}"
+    fun menuItem(itemId: Int) = "menuItem/$itemId"
 }
 
 //fun routeTitle(route: String?): String =

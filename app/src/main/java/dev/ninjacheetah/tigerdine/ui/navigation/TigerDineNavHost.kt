@@ -53,21 +53,15 @@ fun TigerDineNavHost(
         composable(
             route = Routes.MENU_ITEM,
             arguments = listOf(
-                navArgument("locationId") {
-                    type = NavType.IntType
-                },
                 navArgument("itemId") {
                     type = NavType.IntType
                 }
             )
         ) { entry ->
-            val locationId = entry.arguments!!.getInt("locationId")
             val itemId = entry.arguments!!.getInt("itemId")
 
             MenuItemScreen(
-                navController = navController,
                 viewModel = viewModel,
-                locationId = locationId,
                 itemId = itemId
             )
         }
