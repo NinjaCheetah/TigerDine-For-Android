@@ -12,6 +12,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -25,9 +26,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.ninjacheetah.tigerdine.R
-import dev.ninjacheetah.tigerdine.components.formatTigerDine
-import dev.ninjacheetah.tigerdine.components.formatVisitingChef
-import dev.ninjacheetah.tigerdine.data.DiningModel
+import dev.ninjacheetah.tigerdine.util.formatTigerDine
+import dev.ninjacheetah.tigerdine.util.formatVisitingChef
+import dev.ninjacheetah.tigerdine.data.state.DiningModel
+import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
+import dev.ninjacheetah.tigerdine.data.state.TopBarState
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
 import dev.ninjacheetah.tigerdine.data.types.VisitingChefStatus
 import kotlinx.datetime.TimeZone
@@ -52,6 +55,19 @@ fun VisitingChefsScreen(viewModel: DiningModel = viewModel()) {
         }
 
         newLocationsWithChefsByDay
+    }
+
+    val updateTopBar = LocalTopBarStateUpdater.current
+
+    LaunchedEffect(Unit) {
+        updateTopBar(
+            TopBarState(
+                title = "Visiting Chefs",
+                actions = {}
+            )
+        )
+
+        viewModel.getHoursByDayIfNeeded()
     }
 
     Column (

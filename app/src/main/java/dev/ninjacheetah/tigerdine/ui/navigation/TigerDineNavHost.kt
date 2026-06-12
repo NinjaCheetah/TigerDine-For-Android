@@ -9,7 +9,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import dev.ninjacheetah.tigerdine.data.DiningModel
+import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.ui.DetailScreen
 import dev.ninjacheetah.tigerdine.ui.HomeScreen
 import dev.ninjacheetah.tigerdine.ui.VisitingChefsScreen
@@ -36,58 +36,32 @@ fun TigerDineNavHost(
             )
         }
 
-        composable(
-            route = Routes.DETAIL,
-            arguments = listOf(
-                navArgument("locationId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { entry ->
-            val locationId = entry.arguments!!.getInt("locationId")
-
+        composable(Routes.DETAIL) {
             DetailScreen(
                 viewModel = viewModel,
-                navController = navController,
-                locationId = locationId
+                navController = navController
             )
         }
 
-        composable(
-            route = Routes.MENU,
-            arguments = listOf(
-                navArgument("locationId") {
-                    type = NavType.IntType
-                }
-            )
-        ) { entry ->
-            val locationId = entry.arguments!!.getInt("locationId")
-
+        composable(Routes.MENU) {
             MenuScreen(
                 navController = navController,
-                viewModel = viewModel,
-                locationId = locationId
+                viewModel = viewModel
             )
         }
 
         composable(
             route = Routes.MENU_ITEM,
             arguments = listOf(
-                navArgument("locationId") {
-                    type = NavType.IntType
-                },
                 navArgument("itemId") {
                     type = NavType.IntType
                 }
             )
         ) { entry ->
-            val locationId = entry.arguments!!.getInt("locationId")
             val itemId = entry.arguments!!.getInt("itemId")
 
             MenuItemScreen(
-                navController = navController,
                 viewModel = viewModel,
-                locationId = locationId,
                 itemId = itemId
             )
         }

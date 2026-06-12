@@ -6,22 +6,21 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,20 +29,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import dev.ninjacheetah.tigerdine.R
 import androidx.navigation.NavController
-import dev.ninjacheetah.tigerdine.components.formatNextOpen
-import dev.ninjacheetah.tigerdine.components.formatTigerDine
-import dev.ninjacheetah.tigerdine.data.DiningModel
+import dev.ninjacheetah.tigerdine.R
+import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
+import dev.ninjacheetah.tigerdine.data.state.DiningModel
+import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
+import dev.ninjacheetah.tigerdine.data.state.TopBarState
 import dev.ninjacheetah.tigerdine.data.types.OpenStatus
 import dev.ninjacheetah.tigerdine.data.types.VisitingChefStatus
 import dev.ninjacheetah.tigerdine.data.types.WeeklyHours
+import dev.ninjacheetah.tigerdine.ui.navigation.Routes
+import dev.ninjacheetah.tigerdine.util.formatNextOpen
+import dev.ninjacheetah.tigerdine.util.formatTigerDine
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
@@ -52,10 +55,8 @@ import kotlinx.datetime.toLocalDateTime
 fun DetailScreen(
     viewModel: DiningModel = viewModel(),
     navController: NavController,
-    locationId: Int,
 ) {
-    val location = viewModel.locationsByDay.first().find { it.id == locationId }
-    val configuration = LocalConfiguration.current
+    val location = viewModel.locationsByDay.first().find { it.id == viewModel.focusedLocationId }
     var expandHours by remember { mutableStateOf(true) }
     var expandChefs by remember { mutableStateOf(false) }
     var expandDailies by remember { mutableStateOf(false) }
@@ -65,7 +66,7 @@ fun DetailScreen(
 
         for (day in viewModel.locationsByDay) {
             for (location in day) {
-                if (location.id == locationId) {
+                if (location.id == viewModel.focusedLocationId) {
                     val weekdayStr: String = location.date.toLocalDateTime(TimeZone.currentSystemDefault())
                         .dayOfWeek
                         .name
@@ -98,8 +99,32 @@ fun DetailScreen(
         newWeeklyHours
     }
 
-    if (location != null) {
+    val updateTopBar = LocalTopBarStateUpdater.current
 
+    LaunchedEffect(Unit) {
+        updateTopBar(
+            TopBarState(
+                title = "Details",
+                actions = {
+                    if (tCtoFDMPMap.contains(viewModel.focusedLocationId)) {
+                        IconButton(
+                            onClick = { navController.navigate(Routes.MENU) }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.menu_book_2_24px),
+                                contentDescription = "Show menu",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                }
+            )
+        )
+
+        viewModel.getHoursByDayIfNeeded()
+    }
+
+    if (location != null) {
         Column(
             modifier = Modifier
                 .padding(16.dp)
@@ -118,9 +143,9 @@ fun DetailScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
-                        modifier = Modifier.width((configuration.screenWidthDp/2).dp)
+                        modifier = Modifier.width((LocalWindowInfo.current.containerDpSize.width / 2))
                     ) {
-                        Column() {
+                        Column {
                             Text(
                                 location.name,
                                 style = MaterialTheme.typography.headlineLarge,
@@ -203,18 +228,14 @@ fun DetailScreen(
                         )
                     },
                     onClick = {
-                        expandHours = if (expandHours) {
-                            false
-                        } else {
-                            true
-                        }
+                        expandHours = !expandHours
                     },
                     shapes = ListItemDefaults.segmentedShapes(
                         index = 0,
                         count = if (!location.visitingChefs.isNullOrEmpty() || !location.dailySpecials.isNullOrEmpty() || expandHours) 2 else 1
                     ),
                     content = {
-                        Row() {
+                        Row {
                             when (location.open) {
                                 OpenStatus.OPEN -> Text(
                                     "Open",
@@ -261,7 +282,7 @@ fun DetailScreen(
                                     }
 
                                     for (loc in day) {
-                                        if (loc.id == locationId) {
+                                        if (loc.id == viewModel.focusedLocationId) {
                                             if (!loc.diningTimes.isNullOrEmpty()) {
                                                 opensNext = "Opens ${loc.diningTimes.first().openTime.formatNextOpen()}"
                                                 break
@@ -369,11 +390,7 @@ fun DetailScreen(
                             )
                         },
                         onClick = {
-                            expandChefs = if (expandChefs) {
-                                false
-                            } else {
-                                true
-                            }
+                            expandChefs = !expandChefs
                         },
                         shapes = ListItemDefaults.segmentedShapes(
                             index = 3,
@@ -402,12 +419,12 @@ fun DetailScreen(
                                 count = 6
                             ),
                             content = {
-                                Column() {
+                                Column {
                                     location.visitingChefs.forEach { chef ->
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Column() {
+                                            Column {
                                                 Text(chef.name, style = MaterialTheme.typography.bodyLarge)
                                                 when (chef.status) {
                                                     VisitingChefStatus.HERE_NOW -> Text(
@@ -479,11 +496,7 @@ fun DetailScreen(
                             )
                         },
                         onClick = {
-                            expandDailies = if (expandDailies) {
-                                false
-                            } else {
-                                true
-                            }
+                            expandDailies = !expandDailies
                         },
                         shapes = ListItemDefaults.segmentedShapes(
                             index = 4,
@@ -512,7 +525,7 @@ fun DetailScreen(
                                 count = if (expandDailies) 6 else 5
                             ),
                             content = {
-                                Column() {
+                                Column {
                                     location.dailySpecials.forEach { special ->
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
