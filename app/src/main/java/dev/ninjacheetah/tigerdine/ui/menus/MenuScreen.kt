@@ -1,31 +1,51 @@
 package dev.ninjacheetah.tigerdine.ui.menus
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import dev.ninjacheetah.tigerdine.R
+import dev.ninjacheetah.tigerdine.data.constant.fdmpMealPeriodsMap
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
 import dev.ninjacheetah.tigerdine.data.types.FDMenuItem
 import dev.ninjacheetah.tigerdine.ui.components.LoadingScreen
+import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 import dev.ninjacheetah.tigerdine.ui.navigation.Routes.menuItem
 
 @ExperimentalMaterial3Api
@@ -35,13 +55,58 @@ fun MenuScreen(
     navController: NavHostController,
     viewModel: DiningModel
 ) {
+    var showMealPeriodsPicker by remember { mutableStateOf(false) }
+
     val updateTopBar = LocalTopBarStateUpdater.current
 
     LaunchedEffect(Unit) {
         updateTopBar(
             TopBarState(
                 title = "Menu",
-                actions = {}
+                actions = {
+                    IconButton(
+                        onClick = { showMealPeriodsPicker = true }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.schedule_24px),
+                            contentDescription = "Show meal periods",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = showMealPeriodsPicker,
+                        onDismissRequest = { showMealPeriodsPicker = false },
+                        shape = MaterialTheme.shapes.large
+                    ) {
+                        viewModel.openPeriods.forEach { opening ->
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .selectable(
+                                        selected = (opening == viewModel.selectedMealPeriod),
+                                        onClick = { viewModel.changeSelectedMealPeriod(opening) },
+                                        role = Role.RadioButton
+                                    )
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = (opening == viewModel.selectedMealPeriod),
+                                    onClick = null
+                                )
+                                fdmpMealPeriodsMap[opening]?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.padding(start = 16.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             )
         )
 
@@ -62,6 +127,27 @@ fun MenuScreen(
     ) {
         if (!viewModel.menuIsLoaded) {
             LoadingScreen()
+        } else if (viewModel.menuItems.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.calendar_meal_24px),
+                        contentDescription = "No menu available",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(64.dp)
+                    )
+                    Text(
+                        "No menu is available for the selected meal period today. " +
+                            "Try selecting a different meal period.",
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
         } else {
             Column(
                 verticalArrangement = Arrangement.spacedBy(3.dp),

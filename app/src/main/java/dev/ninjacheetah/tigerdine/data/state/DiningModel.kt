@@ -131,6 +131,7 @@ class DiningModel(
     //      current state of the app.
     // ------------------------------------------------------------------------
 
+    var haveMenuForLocationId by mutableIntStateOf(0)
     var openPeriods: List<Int> by mutableStateOf(emptyList())
     var selectedMealPeriod by mutableIntStateOf(0)
     var menuItems: List<FDMenuItem> by mutableStateOf(emptyList())
@@ -138,7 +139,7 @@ class DiningModel(
     var menuIsLoading by mutableStateOf(true)
 
     fun getOpenPeriods() {
-        if (openPeriods.isEmpty()) {
+        if (openPeriods.isEmpty() || haveMenuForLocationId != focusedLocationId) {
             viewModelScope.launch {
                 val openingsParser = diningRepository.getFDMealPlannerOpenings(tCtoFDMPMap[focusedLocationId]!!.first)
 
@@ -170,6 +171,11 @@ class DiningModel(
                 menuIsLoaded = true
             }
         }
+    }
+
+    fun changeSelectedMealPeriod(newSelectedPeriod: Int) {
+        selectedMealPeriod = newSelectedPeriod
+        getMenuForPeriod()
     }
 }
 
