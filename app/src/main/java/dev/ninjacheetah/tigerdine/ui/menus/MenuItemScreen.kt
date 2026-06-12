@@ -9,16 +9,30 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
+import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
+import dev.ninjacheetah.tigerdine.data.state.TopBarState
 
 @Composable
 fun MenuItemScreen(
     viewModel: DiningModel,
     itemId: Int
 ) {
+    val updateTopBar = LocalTopBarStateUpdater.current
+
+    LaunchedEffect(Unit) {
+        updateTopBar(
+            TopBarState(
+                title = "Details",
+                actions = {}
+            )
+        )
+    }
+
     val item = viewModel.menuItems.find { it.id == itemId }!!
 
     Column(

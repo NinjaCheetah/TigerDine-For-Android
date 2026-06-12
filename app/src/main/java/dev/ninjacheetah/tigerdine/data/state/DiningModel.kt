@@ -167,6 +167,7 @@ class DiningModel(
 
             if (rawMenuItems != null) {
                 menuItems = parseFDMealPlannerMenu(rawMenuItems)
+                haveMenuForLocationId = focusedLocationId
                 menuIsLoading = false
                 menuIsLoaded = true
             }

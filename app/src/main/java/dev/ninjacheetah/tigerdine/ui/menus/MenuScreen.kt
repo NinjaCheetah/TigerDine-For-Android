@@ -1,6 +1,5 @@
 package dev.ninjacheetah.tigerdine.ui.menus
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,10 +20,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -32,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -43,9 +46,7 @@ import dev.ninjacheetah.tigerdine.data.constant.fdmpMealPeriodsMap
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
-import dev.ninjacheetah.tigerdine.data.types.FDMenuItem
 import dev.ninjacheetah.tigerdine.ui.components.LoadingScreen
-import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 import dev.ninjacheetah.tigerdine.ui.navigation.Routes.menuItem
 
 @ExperimentalMaterial3Api
@@ -113,8 +114,16 @@ fun MenuScreen(
         viewModel.getOpenPeriods()
     }
 
-    val filteredMenuItems = remember(viewModel.menuItems) {
-        viewModel.menuItems.sortedWith(
+    var searchText by remember { mutableStateOf("") }
+
+    val filteredMenuItems = remember(
+        viewModel.menuItems,
+        searchText
+    ) {
+        viewModel.menuItems
+            .filter {
+                searchText.isBlank() || it.name.contains(searchText, ignoreCase = true)
+            }.sortedWith(
                 compareBy {
                     it.name.lowercase()
                 }
@@ -155,6 +164,46 @@ fun MenuScreen(
                     .padding(16.dp)
                     .verticalScroll(rememberScrollState())
             ) {
+                OutlinedTextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                    ,
+                    singleLine = true,
+                    shape = RoundedCornerShape(28.dp),
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.search_24px),
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    },
+                    placeholder = {
+                        Text("Search")
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    trailingIcon = {
+                        Box {
+                            IconButton(
+                                onClick = { println("filter btn tapped") }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.filter_list_24px),
+                                    contentDescription = "Filter",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                )
+
                 for (item in filteredMenuItems) {
                     SegmentedListItem(
                         verticalAlignment = Alignment.CenterVertically,
