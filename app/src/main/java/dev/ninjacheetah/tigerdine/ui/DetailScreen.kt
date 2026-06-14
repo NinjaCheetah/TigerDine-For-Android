@@ -1,5 +1,6 @@
 package dev.ninjacheetah.tigerdine.ui
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,6 +58,8 @@ fun DetailScreen(
     viewModel: DiningModel = viewModel(),
     navController: NavController,
 ) {
+    val use24Hour = DateFormat.is24HourFormat(LocalContext.current)
+
     val location = viewModel.locationsByDay.first().find { it.id == viewModel.focusedLocationId }
     var expandHours by remember { mutableStateOf(true) }
     var expandChefs by remember { mutableStateOf(false) }
@@ -77,7 +81,7 @@ fun DetailScreen(
                         var timeStrings: List<String> = emptyList()
 
                         for (time in location.diningTimes) {
-                            timeStrings = timeStrings + "${time.openTime.formatTigerDine()} - ${time.closeTime.formatTigerDine()}"
+                            timeStrings = timeStrings + "${time.openTime.formatTigerDine(use24Hour)} - ${time.closeTime.formatTigerDine(use24Hour)}"
                         }
 
                         newWeeklyHours = newWeeklyHours + WeeklyHours(
@@ -191,7 +195,7 @@ fun DetailScreen(
                         if (location.diningTimes != null) {
                             location.diningTimes.forEach { opening ->
                                 Text(
-                                    "${opening.openTime.formatTigerDine()} - ${opening.closeTime.formatTigerDine()}",
+                                    "${opening.openTime.formatTigerDine(use24Hour)} - ${opening.closeTime.formatTigerDine(use24Hour)}",
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
@@ -266,7 +270,7 @@ fun DetailScreen(
                             )
                             if (location.open == OpenStatus.OPEN || location.open == OpenStatus.CLOSING_SOON) {
                                 Text(
-                                    text = "Closes ${location.diningTimes?.first()?.closeTime?.formatTigerDine()}"
+                                    text = "Closes ${location.diningTimes?.first()?.closeTime?.formatTigerDine(use24Hour)}"
                                 )
                             } else {
                                 var opensNext = ""
@@ -284,7 +288,7 @@ fun DetailScreen(
                                     for (loc in day) {
                                         if (loc.id == viewModel.focusedLocationId) {
                                             if (!loc.diningTimes.isNullOrEmpty()) {
-                                                opensNext = "Opens ${loc.diningTimes.first().openTime.formatNextOpen()}"
+                                                opensNext = "Opens ${loc.diningTimes.first().openTime.formatNextOpen(use24Hour)}"
                                                 break
                                             }
                                         }
@@ -461,7 +465,7 @@ fun DetailScreen(
                                             Spacer(modifier = Modifier.weight(1f))
                                             Column {
                                                 Text(
-                                                    "${chef.openTime.formatTigerDine()} - ${chef.closeTime.formatTigerDine()}",
+                                                    "${chef.openTime.formatTigerDine(use24Hour)} - ${chef.closeTime.formatTigerDine(use24Hour)}",
                                                     style = MaterialTheme.typography.bodyLarge
                                                 )
                                             }

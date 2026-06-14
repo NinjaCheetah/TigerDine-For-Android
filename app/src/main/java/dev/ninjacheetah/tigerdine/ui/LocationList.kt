@@ -1,5 +1,6 @@
 package dev.ninjacheetah.tigerdine.ui
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ListItemDefaults
@@ -10,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -28,6 +30,8 @@ fun LocationList(
     openLocationsOnly: Boolean,
     openLocationsFirst: Boolean
 ) {
+    val use24Hour = DateFormat.is24HourFormat(LocalContext.current)
+
     val filteredLocations = remember(
         viewModel.locationsByDay,
         searchText,
@@ -85,7 +89,7 @@ fun LocationList(
                         Column {
                             location.diningTimes.forEach { opening ->
                                 Text(
-                                    text = "${opening.openTime.formatTigerDine()} - ${opening.closeTime.formatTigerDine()}",
+                                    text = "${opening.openTime.formatTigerDine(use24Hour)} - ${opening.closeTime.formatTigerDine(use24Hour)}",
                                     style = MaterialTheme.typography.titleSmall
                                 )
                             }

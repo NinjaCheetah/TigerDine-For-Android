@@ -8,10 +8,33 @@ import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Instant
 
-fun Instant.formatTigerDine(): String {
-    val zone = TimeZone.of("America/New_York")
-    val localDateTime = this.toLocalDateTime(zone)
-    return "%02d:%02d".format(localDateTime.hour, localDateTime.minute)
+fun Instant.formatTigerDine(
+    use24Hour: Boolean
+): String {
+//    val zone = TimeZone.of("America/New_York")
+//    val localDateTime = this.toLocalDateTime(zone)
+//    return "%02d:%02d".format(localDateTime.hour, localDateTime.minute)
+    val localDateTime = this.toLocalDateTime(
+        TimeZone.of("America/New_York")
+    )
+
+    return if (use24Hour) {
+        "%02d:%02d".format(
+            localDateTime.hour,
+            localDateTime.minute
+        )
+    } else {
+        val hour12 = when (val h = localDateTime.hour % 12) {
+            0 -> 12
+            else -> h
+        }
+
+        "%d:%02d %s".format(
+            hour12,
+            localDateTime.minute,
+            if (localDateTime.hour < 12) "AM" else "PM"
+        )
+    }
 }
 
 fun Instant.formatVisitingChef(): String {
@@ -46,7 +69,9 @@ fun Instant.formatVisitingChef(): String {
     return "$weekday, $month ${date.day}"
 }
 
-fun Instant.formatNextOpen(): String {
+fun Instant.formatNextOpen(
+    use24Hour: Boolean
+): String {
     val timeZone = TimeZone.of("America/New_York")
     val date = this.toLocalDateTime(timeZone).date
 
@@ -60,7 +85,7 @@ fun Instant.formatNextOpen(): String {
         DayOfWeek.SUNDAY -> "Sun"
     }
 
-    return "${this.formatTigerDine()} $weekday"
+    return "${this.formatTigerDine(use24Hour)} $weekday"
 }
 
 fun LocalDateTime.toYyyyMmDd(): String =

@@ -1,5 +1,6 @@
 package dev.ninjacheetah.tigerdine.ui
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,7 +39,11 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
 @Composable
-fun VisitingChefsScreen(viewModel: DiningModel = viewModel()) {
+fun VisitingChefsScreen(
+    viewModel: DiningModel = viewModel()
+) {
+    val use24Hour = DateFormat.is24HourFormat(LocalContext.current)
+
     var focusedIndex by remember { mutableIntStateOf(0) }
 
     val locationsWithChefsByDay: List<List<DiningLocation>> = remember(viewModel.locationsByDay) {
@@ -176,7 +182,7 @@ fun VisitingChefsScreen(viewModel: DiningModel = viewModel()) {
                                 )
                             }
                             Text(" • ")
-                            Text("${chef.openTime.formatTigerDine()} - ${chef.closeTime.formatTigerDine()}")
+                            Text("${chef.openTime.formatTigerDine(use24Hour)} - ${chef.closeTime.formatTigerDine(use24Hour)}")
                         }
                         Text(chef.description)
                     }
