@@ -13,9 +13,13 @@ import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
 import dev.ninjacheetah.tigerdine.util.parseLocationInfo
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
 import dev.ninjacheetah.tigerdine.data.types.FDMenuItem
+import dev.ninjacheetah.tigerdine.util.isToday
 import dev.ninjacheetah.tigerdine.util.parseFDMealPlannerMenu
+import dev.ninjacheetah.tigerdine.util.withUpdatedOpenStatus
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
@@ -23,12 +27,40 @@ import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 class DiningModel(
     private val diningRepository: DiningRepository,
     private val settingsRepository: SettingsRepository
 ) : ViewModel() {
+
+    // ------------------------------------------------------------------------
+    // Init stuff
+    //
+    //      Anything that needs to happen when the view model is first created.
+    // ------------------------------------------------------------------------
+
+    init {
+        startUpdateOpenStatuesTimer()
+    }
+
+
+    // Start an always running timer to automatically update the open statues for all the locations,
+    // so that the status labels change automatically as time progresses. This will also
+    // automatically reload the dining data if the last refreshed date is no longer today.
+    private fun startUpdateOpenStatuesTimer() {
+        viewModelScope.launch {
+            while (isActive) {
+                delay(3.seconds)
+
+                updateOpenStatuses()
+                if (!(lastRefreshed?.isToday() ?: false)) {
+                    getHoursByDay()
+                }
+            }
+        }
+    }
 
     // ------------------------------------------------------------------------
     // Main Dining Information Section
@@ -119,6 +151,14 @@ class DiningModel(
                 isLoaded = true
             } finally {
                 isRefreshing = false
+            }
+        }
+    }
+
+    fun updateOpenStatuses() {
+        locationsByDay = locationsByDay.map { day ->
+            day.map { location ->
+                location.withUpdatedOpenStatus()
             }
         }
     }

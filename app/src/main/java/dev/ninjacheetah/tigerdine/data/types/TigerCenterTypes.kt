@@ -95,7 +95,7 @@ data class VisitingChef(
     val description: String,
     var openTime: Instant,
     var closeTime: Instant,
-    var status: VisitingChefStatus
+    val status: VisitingChefStatus
 )
 
 // A daily special at a location.
@@ -121,7 +121,7 @@ data class DiningLocation(
     val mapsUrl: String,
     val date: Instant,
     val diningTimes: List<DiningTimes>?,
-    var open: OpenStatus,
+    val open: OpenStatus,
     val visitingChefs: List<VisitingChef>?,
     val dailySpecials: List<DailySpecial>?
 )

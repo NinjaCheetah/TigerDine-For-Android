@@ -361,23 +361,34 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
 
 // Updates the open status of a location and of its visiting chefs, so that the labels in the UI
 // update automatically as time progresses and locations open/close/etc.
-fun DiningLocation.updateOpenStatus() {
-    this.open = parseMultiOpenStatus(diningTimes, Clock.System.now())
-    if (!this.visitingChefs.isNullOrEmpty()) {
-        for (i in visitingChefs.indices) {
-            this.visitingChefs[i].status = when (parseOpenStatus(visitingChefs[i].openTime, visitingChefs[i].closeTime,
-                Clock.System.now())) {
-                OpenStatus.OPEN -> VisitingChefStatus.HERE_NOW
-                OpenStatus.CLOSED -> {
-                    if (Clock.System.now() < visitingChefs[i].openTime) {
-                        VisitingChefStatus.ARRIVING_LATER
-                    } else {
-                        VisitingChefStatus.GONE
+fun DiningLocation.withUpdatedOpenStatus(): DiningLocation {
+    return copy(
+        open = parseMultiOpenStatus(diningTimes, Clock.System.now()),
+        visitingChefs = if (!visitingChefs.isNullOrEmpty()) {
+            visitingChefs.map { chef ->
+                chef.copy(
+                    status = when (
+                        parseOpenStatus(
+                            chef.openTime,
+                            chef.closeTime,
+                            Clock.System.now()
+                        )
+                    ) {
+                        OpenStatus.OPEN -> VisitingChefStatus.HERE_NOW
+                        OpenStatus.CLOSED ->
+                            if (Clock.System.now() < chef.openTime) {
+                                VisitingChefStatus.ARRIVING_LATER
+                            } else {
+                                VisitingChefStatus.GONE
+                            }
+
+                        OpenStatus.OPENING_SOON -> VisitingChefStatus.ARRIVING_SOON
+                        OpenStatus.CLOSING_SOON -> VisitingChefStatus.LEAVING_SOON
                     }
-                }
-                OpenStatus.OPENING_SOON -> VisitingChefStatus.ARRIVING_SOON
-                OpenStatus.CLOSING_SOON -> VisitingChefStatus.LEAVING_SOON
+                )
             }
+        } else {
+            null
         }
-    }
+    )
 }

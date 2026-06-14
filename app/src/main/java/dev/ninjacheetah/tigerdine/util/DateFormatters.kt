@@ -6,6 +6,7 @@ import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 fun Instant.formatTigerDine(
@@ -93,3 +94,9 @@ fun LocalDateTime.toYyyyMmDd(): String =
 
 fun LocalDateTime.toFDMPAPIFriendly(): String =
     "%04d/%02d/%02d".format(year, month.number, day)
+
+fun Instant.isToday(): Boolean {
+    val timeZone = TimeZone.of("America/New_York")
+    return this.toLocalDateTime(timeZone).date ==
+            Clock.System.now().toLocalDateTime(timeZone).date
+}
