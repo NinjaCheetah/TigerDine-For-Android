@@ -1,5 +1,10 @@
 package dev.ninjacheetah.tigerdine.ui.navigation
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
@@ -27,7 +32,23 @@ fun TigerDineNavHost(
     NavHost(
         navController = navController,
         startDestination = Routes.HOME,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = {
+            slideInHorizontally(
+                animationSpec = tween(300)
+            ) { fullWidth -> fullWidth }
+        },
+        exitTransition = {
+            ExitTransition.None
+        },
+        popEnterTransition = {
+            EnterTransition.None
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                animationSpec = tween(300)
+            ) { fullWidth -> fullWidth }
+        }
     ) {
         composable(Routes.HOME) {
             HomeScreen(
