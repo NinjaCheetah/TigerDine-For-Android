@@ -40,13 +40,16 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.ninjacheetah.tigerdine.R
 import dev.ninjacheetah.tigerdine.data.constant.fdmpMealPeriodsMap
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
 import dev.ninjacheetah.tigerdine.ui.components.LoadingScreen
+import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 import dev.ninjacheetah.tigerdine.ui.navigation.Routes.menuItem
 
 @ExperimentalMaterial3Api
@@ -60,56 +63,60 @@ fun MenuScreen(
 
     val updateTopBar = LocalTopBarStateUpdater.current
 
-    LaunchedEffect(Unit) {
-        updateTopBar(
-            TopBarState(
-                title = "Menu",
-                actions = {
-                    IconButton(
-                        onClick = { showMealPeriodsPicker = true }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.schedule_24px),
-                            contentDescription = "Show meal periods",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-                    DropdownMenu(
-                        expanded = showMealPeriodsPicker,
-                        onDismissRequest = { showMealPeriodsPicker = false },
-                        shape = MaterialTheme.shapes.large
-                    ) {
-                        viewModel.openPeriods.forEach { opening ->
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp)
-                                    .selectable(
+    LaunchedEffect(navBackStackEntry) {
+        if (navBackStackEntry?.destination?.route == Routes.MENU) {
+            updateTopBar(
+                TopBarState(
+                    title = "Menu",
+                    actions = {
+                        IconButton(
+                            onClick = { showMealPeriodsPicker = true }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.schedule_24px),
+                                contentDescription = "Show meal periods",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showMealPeriodsPicker,
+                            onDismissRequest = { showMealPeriodsPicker = false },
+                            shape = MaterialTheme.shapes.large
+                        ) {
+                            viewModel.openPeriods.forEach { opening ->
+                                Row(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(56.dp)
+                                        .selectable(
+                                            selected = (opening == viewModel.selectedMealPeriod),
+                                            onClick = { viewModel.changeSelectedMealPeriod(opening) },
+                                            role = Role.RadioButton
+                                        )
+                                        .padding(horizontal = 16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(
                                         selected = (opening == viewModel.selectedMealPeriod),
-                                        onClick = { viewModel.changeSelectedMealPeriod(opening) },
-                                        role = Role.RadioButton
+                                        onClick = null
                                     )
-                                    .padding(horizontal = 16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(
-                                    selected = (opening == viewModel.selectedMealPeriod),
-                                    onClick = null
-                                )
-                                fdmpMealPeriodsMap[opening]?.let {
-                                    Text(
-                                        text = it,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        modifier = Modifier.padding(start = 16.dp)
-                                    )
+                                    fdmpMealPeriodsMap[opening]?.let {
+                                        Text(
+                                            text = it,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            modifier = Modifier.padding(start = 16.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
-                }
+                )
             )
-        )
+        }
 
         viewModel.getOpenPeriods()
     }
@@ -223,7 +230,11 @@ fun MenuScreen(
                                 )
                             }
                         },
-                        onClick = { navController.navigate(menuItem(item.id)) },
+                        onClick = {
+                            if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                navController.navigate(menuItem(item.id))
+                            }
+                        },
                         shapes = ListItemDefaults.segmentedShapes(
                             index = filteredMenuItems.indexOf(item),
                             count = filteredMenuItems.count()

@@ -37,13 +37,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.ninjacheetah.tigerdine.R
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
 import dev.ninjacheetah.tigerdine.ui.components.LoadingScreen
+import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 
 @ExperimentalMaterial3Api
 @ExperimentalMaterial3ExpressiveApi
@@ -61,13 +64,17 @@ fun HomeScreen(
 
     val updateTopBar = LocalTopBarStateUpdater.current
 
-    LaunchedEffect(Unit) {
-        updateTopBar(
-            TopBarState(
-                title = "TigerDine for Android Beta",
-                actions = {}
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    LaunchedEffect(navBackStackEntry) {
+        if (navBackStackEntry?.destination?.route == Routes.HOME) {
+            updateTopBar(
+                TopBarState(
+                    title = "TigerDine for Android Beta",
+                    actions = {}
+                )
             )
-        )
+        }
 
         viewModel.getHoursByDayIfNeeded()
     }
@@ -174,7 +181,9 @@ fun HomeScreen(
                                 .padding(vertical = 4.dp),
                             shape = RoundedCornerShape(16.dp),
                             onClick = {
-                                navController.navigate("visitingChefs")
+                                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                    navController.navigate(Routes.VISITING_CHEFS)
+                                }
                             }
                         ) {
                             Surface(

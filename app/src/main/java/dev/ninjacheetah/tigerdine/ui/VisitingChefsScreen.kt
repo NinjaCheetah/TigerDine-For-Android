@@ -28,12 +28,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.ninjacheetah.tigerdine.R
 import dev.ninjacheetah.tigerdine.util.formatTigerDine
 import dev.ninjacheetah.tigerdine.util.formatVisitingChef
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
+import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
 import dev.ninjacheetah.tigerdine.data.types.VisitingChefStatus
 import kotlinx.datetime.TimeZone
@@ -41,7 +44,8 @@ import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun VisitingChefsScreen(
-    viewModel: DiningModel = viewModel()
+    viewModel: DiningModel = viewModel(),
+    navController: NavController
 ) {
     val use24Hour = DateFormat.is24HourFormat(LocalContext.current)
 
@@ -66,13 +70,17 @@ fun VisitingChefsScreen(
 
     val updateTopBar = LocalTopBarStateUpdater.current
 
-    LaunchedEffect(Unit) {
-        updateTopBar(
-            TopBarState(
-                title = "Visiting Chefs",
-                actions = {}
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    LaunchedEffect(navBackStackEntry) {
+        if (navBackStackEntry?.destination?.route == Routes.VISITING_CHEFS) {
+            updateTopBar(
+                TopBarState(
+                    title = "Visiting Chefs",
+                    actions = {}
+                )
             )
-        )
+        }
 
         viewModel.getHoursByDayIfNeeded()
     }

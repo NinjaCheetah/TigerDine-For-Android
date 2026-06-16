@@ -38,8 +38,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.ninjacheetah.tigerdine.R
 import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
@@ -107,25 +109,33 @@ fun DetailScreen(
 
     val updateTopBar = LocalTopBarStateUpdater.current
 
-    LaunchedEffect(Unit) {
-        updateTopBar(
-            TopBarState(
-                title = "Details",
-                actions = {
-                    if (tCtoFDMPMap.contains(viewModel.focusedLocationId)) {
-                        IconButton(
-                            onClick = { navController.navigate(Routes.MENU) }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.menu_book_2_24px),
-                                contentDescription = "Show menu",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    LaunchedEffect(navBackStackEntry) {
+        if (navBackStackEntry?.destination?.route == Routes.DETAIL) {
+            updateTopBar(
+                TopBarState(
+                    title = "Details",
+                    actions = {
+                        if (tCtoFDMPMap.contains(viewModel.focusedLocationId)) {
+                            IconButton(
+                                onClick = {
+                                    if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                        navController.navigate(Routes.MENU)
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.menu_book_2_24px),
+                                    contentDescription = "Show menu",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
                         }
                     }
-                }
+                )
             )
-        )
+        }
 
         viewModel.getHoursByDayIfNeeded()
     }

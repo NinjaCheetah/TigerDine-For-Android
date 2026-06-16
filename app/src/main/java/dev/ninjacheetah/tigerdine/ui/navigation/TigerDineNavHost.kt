@@ -36,7 +36,7 @@ fun TigerDineNavHost(
         enterTransition = {
             slideInHorizontally(
                 animationSpec = tween(300)
-            ) { fullWidth -> fullWidth }
+            ) { it }
         },
         exitTransition = {
             ExitTransition.None
@@ -47,7 +47,7 @@ fun TigerDineNavHost(
         popExitTransition = {
             slideOutHorizontally(
                 animationSpec = tween(300)
-            ) { fullWidth -> fullWidth }
+            ) { it }
         }
     ) {
         composable(Routes.HOME) {
@@ -83,13 +83,15 @@ fun TigerDineNavHost(
 
             MenuItemScreen(
                 viewModel = viewModel,
-                itemId = itemId
+                itemId = itemId,
+                navController = navController
             )
         }
 
         composable(Routes.VISITING_CHEFS) {
             VisitingChefsScreen(
-                viewModel = viewModel
+                viewModel = viewModel,
+                navController = navController
             )
         }
     }

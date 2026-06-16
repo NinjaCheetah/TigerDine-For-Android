@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.android.volley.toolbox.Volley
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
@@ -40,8 +39,6 @@ import dev.ninjacheetah.tigerdine.ui.theme.TigerDineTheme
 fun TigerDineApp() {
     TigerDineTheme {
         val navController = rememberNavController()
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
 
         val context = LocalContext.current
 
@@ -78,7 +75,7 @@ fun TigerDineApp() {
                             Text(topBarState.title)
                         },
                         navigationIcon = {
-                            if (currentRoute != "home") {
+                            if (navController.previousBackStackEntry != null) {
                                 IconButton(
                                     onClick = { navController.navigateUp() }
                                 ) {

@@ -13,27 +13,36 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
+import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 
 @Composable
 fun MenuItemScreen(
     viewModel: DiningModel,
-    itemId: Int
+    itemId: Int,
+    navController: NavController
 ) {
     val updateTopBar = LocalTopBarStateUpdater.current
 
-    LaunchedEffect(Unit) {
-        updateTopBar(
-            TopBarState(
-                title = "Details",
-                actions = {}
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+
+    LaunchedEffect(navBackStackEntry) {
+        if (navBackStackEntry?.destination?.route == Routes.MENU_ITEM) {
+            updateTopBar(
+                TopBarState(
+                    title = "Details",
+                    actions = {}
+                )
             )
-        )
+        }
     }
 
     val item = viewModel.menuItems.find { it.id == itemId }!!
