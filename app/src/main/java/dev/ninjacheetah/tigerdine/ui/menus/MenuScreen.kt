@@ -62,7 +62,6 @@ fun MenuScreen(
     var showMealPeriodsPicker by remember { mutableStateOf(false) }
 
     val updateTopBar = LocalTopBarStateUpdater.current
-
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
     LaunchedEffect(navBackStackEntry) {
@@ -141,7 +140,7 @@ fun MenuScreen(
         color = MaterialTheme.colorScheme.surfaceDim,
         modifier = Modifier.fillMaxSize()
     ) {
-        if (!viewModel.menuIsLoaded) {
+        if (!viewModel.menuIsLoaded || viewModel.haveMenuForLocationId != viewModel.focusedLocationId) {
             LoadingScreen()
         } else if (viewModel.menuItems.isEmpty()) {
             Box(
@@ -168,8 +167,8 @@ fun MenuScreen(
             Column(
                 verticalArrangement = Arrangement.spacedBy(3.dp),
                 modifier = Modifier
-                    .padding(16.dp)
                     .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
             ) {
                 OutlinedTextField(
                     value = searchText,

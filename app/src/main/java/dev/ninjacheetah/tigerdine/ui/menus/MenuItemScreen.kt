@@ -54,8 +54,8 @@ fun MenuItemScreen(
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier
-                .padding(16.dp)
                 .verticalScroll(rememberScrollState())
+                .padding(16.dp)
         ) {
             Column {
                 Text(

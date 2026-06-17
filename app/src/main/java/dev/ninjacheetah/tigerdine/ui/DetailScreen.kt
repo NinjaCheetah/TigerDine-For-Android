@@ -147,8 +147,8 @@ fun DetailScreen(
         if (location != null) {
             Column(
                 modifier = Modifier
-                    .padding(16.dp)
                     .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
             ) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
