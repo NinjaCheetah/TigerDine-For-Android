@@ -5,6 +5,8 @@ object Routes {
 
     const val VISITING_CHEFS = "visitingChefs"
 
+    const val ABOUT = "about"
+
     const val DETAIL = "detail"
 
     const val MENU = "menu"

@@ -15,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
+import dev.ninjacheetah.tigerdine.ui.AboutScreen
 import dev.ninjacheetah.tigerdine.ui.DetailScreen
 import dev.ninjacheetah.tigerdine.ui.HomeScreen
 import dev.ninjacheetah.tigerdine.ui.VisitingChefsScreen
@@ -54,6 +55,12 @@ fun TigerDineNavHost(
             HomeScreen(
                 navController = navController,
                 viewModel = viewModel
+            )
+        }
+
+        composable(Routes.ABOUT) {
+            AboutScreen(
+                navController = navController
             )
         }
 

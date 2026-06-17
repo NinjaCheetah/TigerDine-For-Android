@@ -58,12 +58,12 @@ fun HomeScreen(
 ) {
     var searchText by remember { mutableStateOf("") }
     var showFilterMenu by remember { mutableStateOf(false) }
+    var showTopBarMenu by remember { mutableStateOf(false) }
 
     val openLocationsOnly by viewModel.openLocationsOnly.collectAsState()
     val openLocationsFirst by viewModel.openLocationsFirst.collectAsState()
 
     val updateTopBar = LocalTopBarStateUpdater.current
-
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
     LaunchedEffect(navBackStackEntry) {
@@ -71,7 +71,38 @@ fun HomeScreen(
             updateTopBar(
                 TopBarState(
                     title = "TigerDine for Android Beta",
-                    actions = {}
+                    actions = {
+                        IconButton(
+                            onClick = { showTopBarMenu = true }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.menu_24px),
+                                contentDescription = "Open menu",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showTopBarMenu,
+                            onDismissRequest = { showTopBarMenu = false },
+                            shape = MaterialTheme.shapes.large
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("About") },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.info_24px),
+                                        contentDescription = "About"
+                                    )
+                                },
+                                onClick = {
+                                    if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                        navController.navigate(Routes.ABOUT)
+                                    }
+                                }
+                            )
+                        }
+                    }
                 )
             )
         }
@@ -79,146 +110,144 @@ fun HomeScreen(
         viewModel.getHoursByDayIfNeeded()
     }
 
-    Column {
-        Surface(
-            color = MaterialTheme.colorScheme.surfaceDim,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            if (!viewModel.isLoaded) {
-                LoadingScreen()
-            } else {
-                PullToRefreshBox(
-                    isRefreshing = viewModel.isRefreshing,
-                    onRefresh = { viewModel.getHoursByDay() },
-                    modifier = modifier
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceDim,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        if (!viewModel.isLoaded) {
+            LoadingScreen()
+        } else {
+            PullToRefreshBox(
+                isRefreshing = viewModel.isRefreshing,
+                onRefresh = { viewModel.getHoursByDay() },
+                modifier = modifier
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
                 ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
-                        modifier = Modifier
-                            .verticalScroll(rememberScrollState())
-                            .padding(16.dp)
-                    ) {
-                        OutlinedTextField(
-                            value = searchText,
-                            onValueChange = { searchText = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true,
-                            shape = RoundedCornerShape(28.dp),
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.search_24px),
-                                    contentDescription = "Search",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            },
-                            placeholder = {
-                                Text("Search")
-                            },
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent
-                            ),
-                            trailingIcon = {
-                                Box {
-                                    IconButton(
-                                        onClick = { showFilterMenu = true }
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.filter_list_24px),
-                                            contentDescription = "Filter",
-                                            tint = MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-
-                                    DropdownMenu(
-                                        expanded = showFilterMenu,
-                                        onDismissRequest = { showFilterMenu = false },
-                                        shape = MaterialTheme.shapes.large
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text("Open Locations First") },
-                                            leadingIcon = {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.swap_vert_24px),
-                                                    contentDescription = "Open locations first"
-                                                )
-                                            },
-                                            trailingIcon = {
-                                                Switch(
-                                                    checked = openLocationsFirst,
-                                                    onCheckedChange = viewModel::setOpenLocationsFirst
-                                                )
-                                            },
-                                            onClick = {}
-                                        )
-
-                                        DropdownMenuItem(
-                                            text = { Text("Hide Closed Locations") },
-                                            leadingIcon = {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.visibility_off_24px),
-                                                    contentDescription = "Hide closed locations"
-                                                )
-                                            },
-                                            trailingIcon = {
-                                                Switch(
-                                                    checked = openLocationsOnly,
-                                                    onCheckedChange = viewModel::setOpenLocationsOnly
-                                                )
-                                            },
-                                            onClick = {}
-                                        )
-                                    }
-                                }
-                            }
-                        )
-
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 4.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            onClick = {
-                                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
-                                    navController.navigate(Routes.VISITING_CHEFS)
-                                }
-                            }
-                        ) {
-                            Surface(
-                                modifier = modifier
-                                    .fillMaxWidth(),
-                                color = MaterialTheme.colorScheme.surfaceContainer
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .align(Alignment.CenterHorizontally)
-                                        .padding(12.dp)
+                    OutlinedTextField(
+                        value = searchText,
+                        onValueChange = { searchText = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(28.dp),
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(R.drawable.search_24px),
+                                contentDescription = "Search",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
+                        placeholder = {
+                            Text("Search")
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        trailingIcon = {
+                            Box {
+                                IconButton(
+                                    onClick = { showFilterMenu = true }
                                 ) {
-                                    Text(
-                                        "Upcoming Visiting Chefs",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        modifier = Modifier.weight(1f)
-                                    )
                                     Icon(
-                                        painter = painterResource(R.drawable.chevron_right_24px),
-                                        contentDescription = "Navigate",
+                                        painter = painterResource(R.drawable.filter_list_24px),
+                                        contentDescription = "Filter",
                                         tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                DropdownMenu(
+                                    expanded = showFilterMenu,
+                                    onDismissRequest = { showFilterMenu = false },
+                                    shape = MaterialTheme.shapes.large
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Open Locations First") },
+                                        leadingIcon = {
+                                            Icon(
+                                                painter = painterResource(R.drawable.swap_vert_24px),
+                                                contentDescription = "Open locations first"
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            Switch(
+                                                checked = openLocationsFirst,
+                                                onCheckedChange = viewModel::setOpenLocationsFirst
+                                            )
+                                        },
+                                        onClick = {}
+                                    )
+
+                                    DropdownMenuItem(
+                                        text = { Text("Hide Closed Locations") },
+                                        leadingIcon = {
+                                            Icon(
+                                                painter = painterResource(R.drawable.visibility_off_24px),
+                                                contentDescription = "Hide closed locations"
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            Switch(
+                                                checked = openLocationsOnly,
+                                                onCheckedChange = viewModel::setOpenLocationsOnly
+                                            )
+                                        },
+                                        onClick = {}
                                     )
                                 }
                             }
                         }
+                    )
 
-                        LocationList(
-                            viewModel = viewModel,
-                            navController = navController,
-                            searchText = searchText,
-                            openLocationsOnly = openLocationsOnly,
-                            openLocationsFirst = openLocationsFirst
-                        )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        onClick = {
+                            if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                navController.navigate(Routes.VISITING_CHEFS)
+                            }
+                        }
+                    ) {
+                        Surface(
+                            modifier = modifier
+                                .fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.surfaceContainer
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(12.dp)
+                            ) {
+                                Text(
+                                    "Upcoming Visiting Chefs",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Icon(
+                                    painter = painterResource(R.drawable.chevron_right_24px),
+                                    contentDescription = "Navigate",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
                     }
+
+                    LocationList(
+                        viewModel = viewModel,
+                        navController = navController,
+                        searchText = searchText,
+                        openLocationsOnly = openLocationsOnly,
+                        openLocationsFirst = openLocationsFirst
+                    )
                 }
             }
         }
