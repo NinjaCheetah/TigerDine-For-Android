@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -63,6 +64,7 @@ fun DetailScreen(
     navController: NavController,
 ) {
     val use24Hour = DateFormat.is24HourFormat(LocalContext.current)
+    val uriHandler = LocalUriHandler.current
 
     val location = viewModel.locationsByDay.first().find { it.id == viewModel.focusedLocationId }
     var expandHours by remember { mutableStateOf(true) }
@@ -117,6 +119,17 @@ fun DetailScreen(
                 TopBarState(
                     title = "Details",
                     actions = {
+                        if (location != null) {
+                            IconButton(
+                                onClick = { uriHandler.openUri(location.mapsUrl) }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.map_24px),
+                                    contentDescription = "Show on map",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
                         if (tCtoFDMPMap.contains(viewModel.focusedLocationId)) {
                             IconButton(
                                 onClick = {

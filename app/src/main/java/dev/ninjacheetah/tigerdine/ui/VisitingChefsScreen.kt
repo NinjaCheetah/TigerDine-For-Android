@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,6 +50,7 @@ fun VisitingChefsScreen(
     navController: NavController
 ) {
     val use24Hour = DateFormat.is24HourFormat(LocalContext.current)
+    val uriHandler = LocalUriHandler.current
 
     var focusedIndex by remember { mutableIntStateOf(0) }
 
@@ -154,11 +157,28 @@ fun VisitingChefsScreen(
                     Column {
                         Spacer(modifier = Modifier.height(16.dp))
                         HorizontalDivider()
-                        Text(
-                            location.name,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Row {
+                            Text(
+                                location.name,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(
+                                onClick = { uriHandler.openUri(location.mapsUrl) },
+                                modifier = Modifier.size(
+                                    MaterialTheme.typography.titleLarge.fontSize.value.dp
+                                )
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.map_24px),
+                                    contentDescription = "Show on map",
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
+                        }
                         location.visitingChefs.forEach { chef ->
                             Text(
                                 chef.name,
