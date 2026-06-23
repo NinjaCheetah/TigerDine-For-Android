@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,7 +53,7 @@ fun VisitingChefsScreen(
     val use24Hour = DateFormat.is24HourFormat(LocalContext.current)
     val uriHandler = LocalUriHandler.current
 
-    var focusedIndex by remember { mutableIntStateOf(0) }
+    var focusedIndex by rememberSaveable { mutableIntStateOf(0) }
 
     val locationsWithChefsByDay: List<List<DiningLocation>> = remember(viewModel.locationsByDay) {
         var newLocationsWithChefsByDay: List<List<DiningLocation>> = emptyList()

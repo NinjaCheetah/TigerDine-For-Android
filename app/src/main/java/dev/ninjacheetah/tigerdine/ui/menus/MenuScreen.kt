@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +60,7 @@ fun MenuScreen(
     navController: NavHostController,
     viewModel: DiningModel
 ) {
-    var showMealPeriodsPicker by remember { mutableStateOf(false) }
+    var showMealPeriodsPicker by rememberSaveable { mutableStateOf(false) }
 
     val updateTopBar = LocalTopBarStateUpdater.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -120,7 +121,7 @@ fun MenuScreen(
         viewModel.getOpenPeriods()
     }
 
-    var searchText by remember { mutableStateOf("") }
+    var searchText by rememberSaveable { mutableStateOf("") }
 
     val filteredMenuItems = remember(
         viewModel.menuItems,

@@ -60,10 +60,18 @@ fun AboutScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "Version $versionCode (${versionName})",
+                    "An unofficial RIT dining app",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    "Version $versionCode (${versionName})",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    "Copyright © 2025-2026 Campbell Bagley & Contributors",
+                    style = MaterialTheme.typography.titleSmall,
                 )
             }
 

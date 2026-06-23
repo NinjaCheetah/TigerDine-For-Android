@@ -27,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,9 +68,9 @@ fun DetailScreen(
     val uriHandler = LocalUriHandler.current
 
     val location = viewModel.locationsByDay.first().find { it.id == viewModel.focusedLocationId }
-    var expandHours by remember { mutableStateOf(true) }
-    var expandChefs by remember { mutableStateOf(false) }
-    var expandDailies by remember { mutableStateOf(false) }
+    var expandHours by rememberSaveable { mutableStateOf(true) }
+    var expandChefs by rememberSaveable { mutableStateOf(false) }
+    var expandDailies by rememberSaveable { mutableStateOf(false) }
 
     val weeklyHours: List<WeeklyHours> = remember(viewModel.locationsByDay) {
         var newWeeklyHours: List<WeeklyHours> = emptyList()

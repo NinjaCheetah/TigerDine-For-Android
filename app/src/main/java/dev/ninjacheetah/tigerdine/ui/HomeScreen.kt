@@ -29,7 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,9 +56,9 @@ fun HomeScreen(
     viewModel: DiningModel = viewModel(),
     navController: NavController
 ) {
-    var searchText by remember { mutableStateOf("") }
-    var showFilterMenu by remember { mutableStateOf(false) }
-    var showTopBarMenu by remember { mutableStateOf(false) }
+    var searchText by rememberSaveable { mutableStateOf("") }
+    var showFilterMenu by rememberSaveable { mutableStateOf(false) }
+    var showTopBarMenu by rememberSaveable { mutableStateOf(false) }
 
     val openLocationsOnly by viewModel.openLocationsOnly.collectAsState()
     val openLocationsFirst by viewModel.openLocationsFirst.collectAsState()
