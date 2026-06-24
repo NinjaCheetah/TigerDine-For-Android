@@ -1,21 +1,19 @@
 package dev.ninjacheetah.tigerdine.ui
 
-import androidx.compose.foundation.layout.Arrangement
 import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,18 +37,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.ninjacheetah.tigerdine.R
-import dev.ninjacheetah.tigerdine.util.formatTigerDine
-import dev.ninjacheetah.tigerdine.util.formatVisitingChef
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
-import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
 import dev.ninjacheetah.tigerdine.data.types.VisitingChefStatus
+import dev.ninjacheetah.tigerdine.ui.navigation.Routes
+import dev.ninjacheetah.tigerdine.util.formatTigerDine
+import dev.ninjacheetah.tigerdine.util.formatVisitingChef
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun VisitingChefsScreen(
     viewModel: DiningModel = viewModel(),
@@ -159,130 +157,133 @@ fun VisitingChefsScreen(
                 )
             }
 
-        locationsWithChefsByDay[focusedIndex].forEach { location ->
-            if (!location.visitingChefs.isNullOrEmpty()) {
-//                Text(
-//                    location.name,
-//                    style = MaterialTheme.typography.titleLarge,
-//                    fontWeight = FontWeight.SemiBold
-//                )
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(3.dp),
-                    modifier = Modifier.padding(0.dp, 8.dp)
-                ) {
-                    SegmentedListItem(
-                        verticalAlignment = Alignment.CenterVertically,
-                        supportingContent = {  },
-                        trailingContent = {  },
-                        onClick = {  },
-                        shapes = ListItemDefaults.segmentedShapes(index = focusedIndex, count = locationsWithChefsByDay.count()),
-                        content = {
-                            Text(
-                                text = location.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        },
-                        colors = ListItemDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        ),
-                    )
-                    location.visitingChefs.forEachIndexed { index, chef ->
+            locationsWithChefsByDay[focusedIndex].forEach { location ->
+                if (!location.visitingChefs.isNullOrEmpty()) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                        modifier = Modifier.padding(0.dp, 8.dp)
+                    ) {
                         SegmentedListItem(
                             verticalAlignment = Alignment.CenterVertically,
-                            supportingContent = {
-                                Row {
-                                    if (focusedIndex == 0) {
-                                        when (chef.status) {
-                                            VisitingChefStatus.HERE_NOW -> Text("Here Now", color = Color.Green, style = MaterialTheme.typography.bodyLarge)
-                                            VisitingChefStatus.GONE -> Text("Left For Today", color = Color.Red, style = MaterialTheme.typography.bodyLarge)
-                                            VisitingChefStatus.ARRIVING_LATER -> Text("Arriving Later", color = Color.Red, style = MaterialTheme.typography.bodyLarge)
-                                            VisitingChefStatus.ARRIVING_SOON -> Text(
-                                                "Arriving Soon",
-                                                color = Color.hsl(32f, 1.00f, 0.48f),
-                                                style = MaterialTheme.typography.bodyLarge
-                                            )
-                                            VisitingChefStatus.LEAVING_SOON -> Text(
-                                                "Leaving Soon",
-                                                color = Color.hsl(32f, 1.00f, 0.48f),
-                                                style = MaterialTheme.typography.bodyLarge
-                                            )
-                                        }
-                                    } else {
-                                        Text(
-                                            "Arriving on ${viewModel.daysRepresented[focusedIndex]
-                                                .toLocalDateTime(TimeZone.currentSystemDefault())
-                                                .dayOfWeek
-                                                .name
-                                                .lowercase()
-                                                .replaceFirstChar { it.uppercase() }
-                                            }",
-                                            color = Color.Red,
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                    }
-                                    Text(" • ")
-                                    Text("${chef.openTime.formatTigerDine()} - ${chef.closeTime.formatTigerDine()}")
-                                }
-                            },
-                            trailingContent = {
-                            },
-                            onClick = {  },
-                            shapes = ListItemDefaults.segmentedShapes(index = index + 1, count = location.visitingChefs.count() + 1),
+                            supportingContent = { },
+                            trailingContent = { },
+                            onClick = { },
+                            shapes = ListItemDefaults.segmentedShapes(
+                                index = focusedIndex,
+                                count = locationsWithChefsByDay.count()
+                            ),
                             content = {
-                                Column() {
+                                Row {
                                     Text(
-                                        text = chef.name,
-//                                      style = MaterialTheme.typography.titleMedium,
+                                        text = location.name,
+                                        style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.SemiBold
                                     )
-                                    Text(chef.description)
+                                    Spacer(
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    IconButton(
+                                        onClick = { uriHandler.openUri(location.mapsUrl) },
+                                        modifier = Modifier.size(
+                                            MaterialTheme.typography.titleLarge.fontSize.value.dp
+                                        )
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.map_24px),
+                                            contentDescription = "Show on map",
+                                            tint = MaterialTheme.colorScheme.onSurface,
+                                        )
+                                    }
                                 }
-
                             },
                             colors = ListItemDefaults.colors(
                                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
                             ),
                         )
-                }
+                        location.visitingChefs.forEachIndexed { index, chef ->
+                            SegmentedListItem(
+                                verticalAlignment = Alignment.CenterVertically,
+                                supportingContent = {
+                                    Row {
+                                        if (focusedIndex == 0) {
+                                            when (chef.status) {
+                                                VisitingChefStatus.HERE_NOW -> Text(
+                                                    "Here Now",
+                                                    color = Color.Green,
+                                                    style = MaterialTheme.typography.bodyLarge
+                                                )
 
-//                    Text(
-//                        chef.name,
-//                        fontWeight = FontWeight.SemiBold
-//                    )
-//                    Row {
-//                        if (focusedIndex == 0) {
-//                            when (chef.status) {
-//                                VisitingChefStatus.HERE_NOW -> Text("Here Now", color = Color.Green, style = MaterialTheme.typography.bodyLarge)
-//                                VisitingChefStatus.GONE -> Text("Left For Today", color = Color.Red, style = MaterialTheme.typography.bodyLarge)
-//                                VisitingChefStatus.ARRIVING_LATER -> Text("Arriving Later", color = Color.Red, style = MaterialTheme.typography.bodyLarge)
-//                                VisitingChefStatus.ARRIVING_SOON -> Text(
-//                                    "Arriving Soon",
-//                                    color = Color.hsl(32f, 1.00f, 0.48f),
-//                                    style = MaterialTheme.typography.bodyLarge
-//                                )
-//                                VisitingChefStatus.LEAVING_SOON -> Text(
-//                                    "Leaving Soon",
-//                                    color = Color.hsl(32f, 1.00f, 0.48f),
-//                                    style = MaterialTheme.typography.bodyLarge
-//                                )
-//                            }
-//                        } else {
-//                            Text(
-//                                "Arriving on ${viewModel.daysRepresented[focusedIndex]
-//                                    .toLocalDateTime(TimeZone.currentSystemDefault())
-//                                    .dayOfWeek
-//                                    .name
-//                                    .lowercase()
-//                                    .replaceFirstChar { it.uppercase() }
-//                                }",
-//                                color = Color.Red,
-//                                style = MaterialTheme.typography.bodyLarge
-//                            )
-//                        }
-//                        Text(" • ")
-//                        Text("${chef.openTime.formatTigerDine()} - ${chef.closeTime.formatTigerDine()}")
-//                    }
+                                                VisitingChefStatus.GONE -> Text(
+                                                    "Left For Today",
+                                                    color = Color.Red,
+                                                    style = MaterialTheme.typography.bodyLarge
+                                                )
+
+                                                VisitingChefStatus.ARRIVING_LATER -> Text(
+                                                    "Arriving Later",
+                                                    color = Color.Red,
+                                                    style = MaterialTheme.typography.bodyLarge
+                                                )
+
+                                                VisitingChefStatus.ARRIVING_SOON -> Text(
+                                                    "Arriving Soon",
+                                                    color = Color.hsl(32f, 1.00f, 0.48f),
+                                                    style = MaterialTheme.typography.bodyLarge
+                                                )
+
+                                                VisitingChefStatus.LEAVING_SOON -> Text(
+                                                    "Leaving Soon",
+                                                    color = Color.hsl(32f, 1.00f, 0.48f),
+                                                    style = MaterialTheme.typography.bodyLarge
+                                                )
+                                            }
+                                        } else {
+                                            Text(
+                                                "Arriving on ${
+                                                    viewModel.daysRepresented[focusedIndex]
+                                                        .toLocalDateTime(TimeZone.currentSystemDefault())
+                                                        .dayOfWeek
+                                                        .name
+                                                        .lowercase()
+                                                        .replaceFirstChar { it.uppercase() }
+                                                }",
+                                                color = Color.Red,
+                                                style = MaterialTheme.typography.bodyLarge
+                                            )
+                                        }
+                                        Text(" • ")
+                                        Text(
+                                            "${chef.openTime.formatTigerDine(use24Hour)} - ${
+                                                chef.closeTime.formatTigerDine(
+                                                    use24Hour
+                                                )
+                                            }"
+                                        )
+                                    }
+                                },
+                                trailingContent = {
+                                },
+                                onClick = { },
+                                shapes = ListItemDefaults.segmentedShapes(
+                                    index = index + 1,
+                                    count = location.visitingChefs.count() + 1
+                                ),
+                                content = {
+                                    Column {
+                                        Text(
+                                            text = chef.name,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                        Text(chef.description)
+                                    }
+
+                                },
+                                colors = ListItemDefaults.colors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                ),
+                            )
+                        }
+                    }
                 }
             }
         }
