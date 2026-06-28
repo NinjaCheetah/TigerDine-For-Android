@@ -1,5 +1,6 @@
 package dev.ninjacheetah.tigerdine.ui.menus
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,6 +57,9 @@ fun MenuItemScreen(
     }
 
     val item = viewModel.menuItems.find { it.id == itemId }!!
+
+    val labelColour = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceContainer else Color.White
+    val labelText = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else Color.Black
 
     Surface(
         color = MaterialTheme.colorScheme.surfaceDim,
@@ -126,7 +130,7 @@ fun MenuItemScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.White,
+                    containerColor = labelColour,
                 )) {
                 Column(
                     modifier = Modifier
@@ -138,17 +142,17 @@ fun MenuItemScreen(
                     style = MaterialTheme.typography.headlineLarge,
                     fontWeight = FontWeight.Black,
                     textAlign = TextAlign.Justify,
-                    color = Color.Black
+                    color = labelText
                 )
                 if (item.servingSize != 0) {
-                    HorizontalDivider(thickness = 1.dp, color = Color.DarkGray)
+                    HorizontalDivider(thickness = 1.dp, color = labelText)
                     Row() {
                         Text(
                             "Serving Size",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Black,
                             textAlign = TextAlign.Left,
-                            color = Color.Black
+                            color = labelText
                         )
                         Spacer(modifier = Modifier.weight(1f))
                         Text(
@@ -156,12 +160,12 @@ fun MenuItemScreen(
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Black,
                             textAlign = TextAlign.Right,
-                            color = Color.Black
+                            color = labelText
                         )
                 }
                 }
 
-                HorizontalDivider(thickness = 16.dp, color = Color.Black)
+                HorizontalDivider(thickness = 16.dp, color = labelText)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth(),
@@ -172,13 +176,15 @@ fun MenuItemScreen(
                             "Amount per serving",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Left
+                            textAlign = TextAlign.Left,
+                            color = labelText
                         )
                         Text(
                             "Calories",
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.ExtraBold,
-                            textAlign = TextAlign.Left
+                            textAlign = TextAlign.Left,
+                            color = labelText
                         )
                     }
                     Spacer(modifier = Modifier.weight(1f))
@@ -186,58 +192,41 @@ fun MenuItemScreen(
                         "${item.calories}",
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Black,
-                        textAlign = TextAlign.Right
+                        textAlign = TextAlign.Right,
+                        color = labelText
                     )
                 }
-                HorizontalDivider(thickness = 8.dp, color = Color.Black)
+                HorizontalDivider(thickness = 8.dp, color = labelText)
                 for (entry in item.nutritionalEntries) {
                     Row {
                         when (entry.type) {
-                            "Saturated Fat" -> {
+                            "Saturated Fat", "Trans Fat", "Dietary Fiber", "Total Sugars" -> {
                                 Text(entry.type, modifier = Modifier
-                                    .padding(16.dp, 0.dp, 0.dp, 0.dp,))
+                                    .padding(16.dp, 0.dp, 0.dp, 0.dp,),
+                                    color = labelText)
                             }
-                            "Trans Fat" -> {
-                                Text(entry.type, modifier = Modifier
-                                    .padding(16.dp, 0.dp, 0.dp, 0.dp,))
-                            }
-                            "Dietary Fiber" -> {
-                                Text(entry.type, modifier = Modifier
-                                    .padding(16.dp, 0.dp, 0.dp, 0.dp,))
-                            }
-                            "Total Sugars" -> {
-                                Text(entry.type, modifier = Modifier
-                                    .padding(16.dp, 0.dp, 0.dp, 0.dp,))
-                            }
-                            "Calcium" -> {
-                                Text(entry.type)
-                            }
-                            "Iron" -> {
-                                Text(entry.type)
-                            }
-                            "Vitamin A" -> {
-                                Text(entry.type)
-                            }
-                            "Vitamin C" -> {
-                                Text(entry.type)
+                            "Calcium", "Iron", "Vitamin A", "Vitamin C" -> {
+                                Text(entry.type, color = labelText)
                             }
                             else -> {
-                                Text(entry.type, fontWeight = FontWeight.Black)
+                                Text(entry.type, fontWeight = FontWeight.Black, color = labelText)
                             }
                         }
                         Spacer(modifier = Modifier.weight(1f))
-                        Text("%.1f".format(entry.amount) + entry.unit)
+                        Text("%.1f".format(entry.amount) + entry.unit,
+                            color = labelText)
                     }
                     when (entry.type) {
-                        "Protein" -> HorizontalDivider(thickness = 16.dp, color = Color.Black)
-                        "Vitamin C" -> HorizontalDivider(thickness = 8.dp, color = Color.Black)
-                        else -> HorizontalDivider(thickness = 1.dp, color = Color.DarkGray)
+                        "Protein" -> HorizontalDivider(thickness = 16.dp, color = labelText)
+                        "Vitamin C" -> HorizontalDivider(thickness = 8.dp, color = labelText)
+                        else -> HorizontalDivider(thickness = 1.dp, color = labelText)
                     }
                 }
                 }
             }
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 )) {
@@ -246,21 +235,21 @@ fun MenuItemScreen(
                         .padding(16.dp)
                         .fillMaxWidth(),
                 ) {
-                    Column {
+                    Column() {
                         Text(
-                            "Allergens",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold
+                            "Contains: ",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black
                         )
                         Text(item.allergens.joinToString(", "))
                     }
-                    Column() {
+                    Column () {
                         Text(
-                            "Ingredients",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.SemiBold
+                            "Ingredients: ",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black
                         )
-                        Text(item.ingredients)
+                        Text(item.ingredients, modifier = Modifier.fillMaxWidth())
                     }
                 }
             }
