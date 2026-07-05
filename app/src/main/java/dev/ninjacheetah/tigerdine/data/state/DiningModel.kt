@@ -76,6 +76,7 @@ class DiningModel(
     var daysRepresented by mutableStateOf<List<Instant>>(emptyList())
     var lastRefreshed by mutableStateOf<Instant?>(null)
     var isLoaded by mutableStateOf(false)
+    var loadFailed by mutableStateOf(false)
     var isRefreshing by mutableStateOf(false)
     var focusedLocationId by mutableIntStateOf(0)
 
@@ -138,17 +139,20 @@ class DiningModel(
 
                 for (day in daysRepresented) {
                     val parserResult =
-                        diningRepository.getAllDiningInfo(day)
+                        diningRepository.getAllDiningInfo(day) ?: throw Exception()
 
                     results += parserResult
-                        ?.locations
-                        ?.map { parseLocationInfo(it, day) }
-                        ?: emptyList()
+                        .locations
+                        .map { parseLocationInfo(it, day) }
                 }
 
                 locationsByDay = results
                 lastRefreshed = Clock.System.now()
+                loadFailed = false
                 isLoaded = true
+            } catch (_: Exception) {
+                println("encountered error while loading dining data, showing error screen")
+                loadFailed = true
             } finally {
                 isRefreshing = false
             }

@@ -88,6 +88,17 @@ fun HomeScreen(
                             shape = MaterialTheme.shapes.large
                         ) {
                             DropdownMenuItem(
+                                text = { Text("Refresh") },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.refresh_24px),
+                                        contentDescription = "Refresh"
+                                    )
+                                },
+                                onClick = { viewModel.getHoursByDay() }
+                            )
+
+                            DropdownMenuItem(
                                 text = { Text("About") },
                                 leadingIcon = {
                                     Icon(
@@ -115,7 +126,7 @@ fun HomeScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         if (!viewModel.isLoaded) {
-            LoadingScreen()
+            LoadingScreen(viewModel.loadFailed)
         } else {
             PullToRefreshBox(
                 isRefreshing = viewModel.isRefreshing,

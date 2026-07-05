@@ -142,10 +142,12 @@ fun MenuScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         if (!viewModel.menuIsLoaded || viewModel.haveMenuForLocationId != viewModel.focusedLocationId) {
-            LoadingScreen()
+            LoadingScreen(viewModel.loadFailed)
         } else if (viewModel.menuItems.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
