@@ -213,6 +213,17 @@ fun MenuScreen(
                     }
                 )
 
+                if (filteredMenuItems.isEmpty()) {
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text("No results found.")
+                    }
+                }
+
                 for (item in filteredMenuItems) {
                     SegmentedListItem(
                         verticalAlignment = Alignment.CenterVertically,
