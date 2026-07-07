@@ -11,8 +11,8 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 @ExperimentalMaterial3ExpressiveApi
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        super.onCreate(savedInstanceState)
         setContent { TigerDineApp() }
     }
 }
