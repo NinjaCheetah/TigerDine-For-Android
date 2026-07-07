@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -83,25 +84,15 @@ fun MenuItemScreen(
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (item.price != 0.0) {
-                        Box(
-                            modifier = Modifier.width((LocalWindowInfo.current.containerDpSize.width / 2))
-                        ) {
-                            Column {
-                                Text(
-                                    item.name,
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    item.category,
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
+                    val modifier = if (item.price == 0.0) {
+                        Modifier.fillMaxWidth()
                     } else {
+                        Modifier.width((LocalWindowInfo.current.containerDpSize.width / 2))
+                    }
+
+                    Box(
+                        modifier = modifier
+                    ) {
                         Column {
                             Text(
                                 item.name,
@@ -114,6 +105,26 @@ fun MenuItemScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                            Row {
+                                for (dietaryMarker in item.dietaryMarkers) {
+                                    val chipColor = when (dietaryMarker) {
+                                        "Vegan", "Vegetarian" -> Color.hsl(134.27f, 0.5697f, 0.4922f)
+                                        else -> Color.hsl(28.47f, 1.00f, 0.5784f)
+                                    }
+
+                                    Surface(
+                                        color = chipColor,
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text(
+                                            text = dietaryMarker,
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                     Spacer(modifier = Modifier.weight(1f))
