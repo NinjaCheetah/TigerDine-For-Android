@@ -26,8 +26,10 @@ import com.android.volley.toolbox.Volley
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.DiningModelFactory
 import dev.ninjacheetah.tigerdine.data.DiningRepository
-import dev.ninjacheetah.tigerdine.data.SettingsRepository
-import dev.ninjacheetah.tigerdine.data.dataStore
+import dev.ninjacheetah.tigerdine.data.persistent.SettingsRepository
+import dev.ninjacheetah.tigerdine.data.persistent.FavoritesRepository
+import dev.ninjacheetah.tigerdine.data.persistent.dataStore
+import dev.ninjacheetah.tigerdine.data.persistent.favoritesDataStore
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
 import dev.ninjacheetah.tigerdine.ui.navigation.TigerDineNavHost
@@ -51,10 +53,14 @@ fun TigerDineApp() {
         val settingsRepository = remember {
             SettingsRepository(context.dataStore)
         }
+        val favoritesRepository = remember {
+            FavoritesRepository(context.favoritesDataStore)
+        }
 
         val factory = DiningModelFactory(
             diningRepository = diningRepository,
-            settingsRepository = settingsRepository
+            settingsRepository = settingsRepository,
+            favoritesRepository = favoritesRepository
         )
         val viewModel: DiningModel = viewModel(factory = factory)
 

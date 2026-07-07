@@ -8,7 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import dev.ninjacheetah.tigerdine.data.DiningRepository
-import dev.ninjacheetah.tigerdine.data.SettingsRepository
+import dev.ninjacheetah.tigerdine.data.persistent.SettingsRepository
+import dev.ninjacheetah.tigerdine.data.persistent.FavoritesRepository
 import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
 import dev.ninjacheetah.tigerdine.util.parseLocationInfo
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
@@ -32,7 +33,8 @@ import kotlin.time.Instant
 
 class DiningModel(
     private val diningRepository: DiningRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val favoritesRepository: FavoritesRepository
 ) : ViewModel() {
 
     // ------------------------------------------------------------------------
@@ -105,6 +107,20 @@ class DiningModel(
     fun setOpenLocationsFirst(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setOpenLocationsFirst(enabled)
+        }
+    }
+
+    val favoriteLocations =
+        favoritesRepository.favoriteLocations
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptySet()
+            )
+
+    fun toggleFavorite(locationId: Int) {
+        viewModelScope.launch {
+            favoritesRepository.toggleFavorite(locationId)
         }
     }
 
@@ -226,13 +242,14 @@ class DiningModel(
 
 class DiningModelFactory(
     private val diningRepository: DiningRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val favoritesRepository: FavoritesRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DiningModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DiningModel(diningRepository, settingsRepository) as T
+            return DiningModel(diningRepository, settingsRepository, favoritesRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

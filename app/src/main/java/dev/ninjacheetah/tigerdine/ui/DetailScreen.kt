@@ -57,6 +57,7 @@ import dev.ninjacheetah.tigerdine.util.formatNextOpen
 import dev.ninjacheetah.tigerdine.util.formatTigerDine
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import androidx.compose.runtime.collectAsState
 
 @ExperimentalMaterial3ExpressiveApi
 @Composable
@@ -122,6 +123,22 @@ fun DetailScreen(
                     actions = {
                         if (location != null) {
                             IconButton(
+                                onClick = { viewModel.toggleFavorite(location.id) }
+                            ) {
+                                val favoriteIcon = if (viewModel.favoriteLocations.collectAsState().value.contains(location.id)) {
+                                    R.drawable.star_fill_24px
+                                } else {
+                                    R.drawable.star_24px
+                                }
+
+                                Icon(
+                                    painter = painterResource(favoriteIcon),
+                                    contentDescription = "Toggle favorite",
+                                    tint = Color.hsl(48.0f, 1.00f, 0.50f)
+                                )
+                            }
+
+                            IconButton(
                                 onClick = { uriHandler.openUri(location.mapsUrl) }
                             ) {
                                 Icon(
@@ -131,6 +148,7 @@ fun DetailScreen(
                                 )
                             }
                         }
+
                         if (tCtoFDMPMap.contains(viewModel.focusedLocationId)) {
                             IconButton(
                                 onClick = {

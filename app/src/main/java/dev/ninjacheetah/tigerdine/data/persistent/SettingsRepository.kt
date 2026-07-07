@@ -1,4 +1,4 @@
-package dev.ninjacheetah.tigerdine.data
+package dev.ninjacheetah.tigerdine.data.persistent
 
 import android.content.Context
 import androidx.datastore.core.DataStore

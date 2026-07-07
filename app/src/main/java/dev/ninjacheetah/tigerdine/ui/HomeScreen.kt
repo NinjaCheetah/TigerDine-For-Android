@@ -70,7 +70,7 @@ fun HomeScreen(
         if (navBackStackEntry?.destination?.route == Routes.HOME) {
             updateTopBar(
                 TopBarState(
-                    title = "TigerDine for Android Beta",
+                    title = "TigerDine for Android",
                     actions = {
                         IconButton(
                             onClick = { showTopBarMenu = true }
