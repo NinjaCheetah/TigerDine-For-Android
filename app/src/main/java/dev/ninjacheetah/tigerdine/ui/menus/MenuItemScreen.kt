@@ -131,7 +131,8 @@ fun MenuItemScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = labelColour,
-                )) {
+                )
+            ) {
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
@@ -146,7 +147,7 @@ fun MenuItemScreen(
                 )
                 if (item.servingSize != 0) {
                     HorizontalDivider(thickness = 1.dp, color = labelText)
-                    Row() {
+                    Row {
                         Text(
                             "Serving Size",
                             style = MaterialTheme.typography.headlineSmall,
@@ -162,7 +163,7 @@ fun MenuItemScreen(
                             textAlign = TextAlign.Right,
                             color = labelText
                         )
-                }
+                    }
                 }
 
                 HorizontalDivider(thickness = 16.dp, color = labelText)
@@ -171,7 +172,7 @@ fun MenuItemScreen(
                         .fillMaxWidth(),
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    Column() {
+                    Column {
                         Text(
                             "Amount per serving",
                             style = MaterialTheme.typography.titleMedium,
@@ -202,7 +203,7 @@ fun MenuItemScreen(
                         when (entry.type) {
                             "Saturated Fat", "Trans Fat", "Dietary Fiber", "Total Sugars" -> {
                                 Text(entry.type, modifier = Modifier
-                                    .padding(16.dp, 0.dp, 0.dp, 0.dp,),
+                                    .padding(16.dp, 0.dp, 0.dp, 0.dp),
                                     color = labelText)
                             }
                             "Calcium", "Iron", "Vitamin A", "Vitamin C" -> {
@@ -235,7 +236,7 @@ fun MenuItemScreen(
                         .padding(16.dp)
                         .fillMaxWidth(),
                 ) {
-                    Column() {
+                    Column {
                         Text(
                             "Contains: ",
                             style = MaterialTheme.typography.titleMedium,
@@ -243,7 +244,7 @@ fun MenuItemScreen(
                         )
                         Text(item.allergens.joinToString(", "))
                     }
-                    Column () {
+                    Column {
                         Text(
                             "Ingredients: ",
                             style = MaterialTheme.typography.titleMedium,

@@ -253,11 +253,34 @@ fun MenuScreen(
                             count = filteredMenuItems.count()
                         ),
                         content = {
-                            Text(
-                                text = item.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            Column {
+                                Text(
+                                    text = item.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+
+                                Row {
+                                    for (dietaryMarker in item.dietaryMarkers) {
+                                        val chipColor = when (dietaryMarker) {
+                                            "Vegan", "Vegetarian" -> Color.hsl(134.27f, 0.5697f, 0.4922f)
+                                            else -> Color.hsl(28.47f, 1.00f, 0.5784f)
+                                        }
+
+                                        Surface(
+                                            color = chipColor,
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Text(
+                                                text = dietaryMarker,
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.labelSmall,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         },
                         colors = ListItemDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainer,
