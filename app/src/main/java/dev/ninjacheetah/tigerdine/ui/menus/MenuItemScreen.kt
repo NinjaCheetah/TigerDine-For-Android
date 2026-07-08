@@ -34,6 +34,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
+import dev.ninjacheetah.tigerdine.data.types.FDMenuItem
 import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 
 @Composable
@@ -62,6 +63,9 @@ fun MenuItemScreen(
     val labelColour = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.surfaceContainer else Color.White
     val labelText = if (isSystemInDarkTheme()) MaterialTheme.colorScheme.onSurface else Color.Black
 
+    val screenWidth = LocalWindowInfo.current.containerDpSize.width
+    val isWideScreen = screenWidth >= 600.dp
+
     Surface(
         color = MaterialTheme.colorScheme.surfaceDim,
         modifier = Modifier.fillMaxSize()
@@ -77,7 +81,7 @@ fun MenuItemScreen(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ))
-                {
+            {
                 Row(
                     modifier = Modifier
                         .padding(16.dp)
@@ -87,7 +91,7 @@ fun MenuItemScreen(
                     val modifier = if (item.price == 0.0) {
                         Modifier.fillMaxWidth()
                     } else {
-                        Modifier.width((LocalWindowInfo.current.containerDpSize.width / 2))
+                        Modifier.width((screenWidth / 2))
                     }
 
                     Box(
@@ -138,132 +142,176 @@ fun MenuItemScreen(
                     }
                 }
             }
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = labelColour,
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                ) {
-                Text(
-                    "Nutrition Facts",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Black,
-                    textAlign = TextAlign.Justify,
-                    color = labelText
-                )
-                if (item.servingSize != 0) {
-                    HorizontalDivider(thickness = 1.dp, color = labelText)
-                    Row {
-                        Text(
-                            "Serving Size",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Black,
-                            textAlign = TextAlign.Left,
-                            color = labelText
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(
-                            "${item.servingSize} ${item.servingSizeUnit}",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Black,
-                            textAlign = TextAlign.Right,
-                            color = labelText
-                        )
-                    }
-                }
-
-                HorizontalDivider(thickness = 16.dp, color = labelText)
+            if (isWideScreen) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.Bottom
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Column {
-                        Text(
-                            "Amount per serving",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Left,
-                            color = labelText
-                        )
-                        Text(
-                            "Calories",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            textAlign = TextAlign.Left,
-                            color = labelText
-                        )
-                    }
+                    NutritionFactsCard(
+                        item = item,
+                        labelColour = labelColour,
+                        labelText = labelText,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IngredientsCard(
+                        item = item,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            } else {
+                NutritionFactsCard(
+                    item,
+                    labelColour,
+                    labelText
+                )
+                IngredientsCard(item)
+            }
+        }
+    }
+}
+
+@Composable
+private fun NutritionFactsCard(
+    item: FDMenuItem,
+    labelColour: Color,
+    labelText: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = labelColour,
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+        ) {
+            Text(
+                "Nutrition Facts",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Justify,
+                color = labelText
+            )
+            if (item.servingSize != 0) {
+                HorizontalDivider(thickness = 1.dp, color = labelText)
+                Row {
+                    Text(
+                        "Serving Size",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Black,
+                        textAlign = TextAlign.Left,
+                        color = labelText
+                    )
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        "${item.calories}",
-                        style = MaterialTheme.typography.headlineLarge,
+                        "${item.servingSize} ${item.servingSizeUnit}",
+                        style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Black,
                         textAlign = TextAlign.Right,
                         color = labelText
                     )
                 }
-                HorizontalDivider(thickness = 8.dp, color = labelText)
-                for (entry in item.nutritionalEntries) {
-                    Row {
-                        when (entry.type) {
-                            "Saturated Fat", "Trans Fat", "Dietary Fiber", "Total Sugars" -> {
-                                Text(entry.type, modifier = Modifier
-                                    .padding(16.dp, 0.dp, 0.dp, 0.dp),
-                                    color = labelText)
-                            }
-                            "Calcium", "Iron", "Vitamin A", "Vitamin C" -> {
-                                Text(entry.type, color = labelText)
-                            }
-                            else -> {
-                                Text(entry.type, fontWeight = FontWeight.Black, color = labelText)
-                            }
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text("%.1f".format(entry.amount) + entry.unit,
-                            color = labelText)
-                    }
-                    when (entry.type) {
-                        "Protein" -> HorizontalDivider(thickness = 16.dp, color = labelText)
-                        "Vitamin C" -> HorizontalDivider(thickness = 8.dp, color = labelText)
-                        else -> HorizontalDivider(thickness = 1.dp, color = labelText)
-                    }
-                }
-                }
             }
-            Card(
+
+            HorizontalDivider(thickness = 16.dp, color = labelText)
+            Row(
                 modifier = Modifier
                     .fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                )) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                ) {
-                    Column {
-                        Text(
-                            "Contains: ",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black
-                        )
-                        Text(item.allergens.joinToString(", "))
-                    }
-                    Column {
-                        Text(
-                            "Ingredients: ",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black
-                        )
-                        Text(item.ingredients, modifier = Modifier.fillMaxWidth())
-                    }
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Column {
+                    Text(
+                        "Amount per serving",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Left,
+                        color = labelText
+                    )
+                    Text(
+                        "Calories",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        textAlign = TextAlign.Left,
+                        color = labelText
+                    )
                 }
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    "${item.calories}",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Right,
+                    color = labelText
+                )
+            }
+            HorizontalDivider(thickness = 8.dp, color = labelText)
+            for (entry in item.nutritionalEntries) {
+                Row {
+                    when (entry.type) {
+                        "Saturated Fat", "Trans Fat", "Dietary Fiber", "Total Sugars" -> {
+                            Text(entry.type, modifier = Modifier
+                                .padding(16.dp, 0.dp, 0.dp, 0.dp),
+                                color = labelText)
+                        }
+                        "Calcium", "Iron", "Vitamin A", "Vitamin C" -> {
+                            Text(entry.type, color = labelText)
+                        }
+                        else -> {
+                            Text(entry.type, fontWeight = FontWeight.Black, color = labelText)
+                        }
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    Text("%.1f".format(entry.amount) + entry.unit,
+                        color = labelText)
+                }
+                when (entry.type) {
+                    "Protein" -> HorizontalDivider(thickness = 16.dp, color = labelText)
+                    "Vitamin C" -> HorizontalDivider(thickness = 8.dp, color = labelText)
+                    else -> HorizontalDivider(thickness = 1.dp, color = labelText)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun IngredientsCard(
+    item: FDMenuItem,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        )) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+        ) {
+            Column {
+                Text(
+                    "Contains: ",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black
+                )
+                Text(item.allergens.joinToString(", "))
+            }
+            Column {
+                Text(
+                    "Ingredients: ",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Black
+                )
+                Text(
+                    item.ingredients,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
