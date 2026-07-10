@@ -14,7 +14,7 @@ android {
         applicationId = "dev.ninjacheetah.tigerdine"
         minSdk = 26
         targetSdk = 37
-        versionCode = 112
+        versionCode = 113
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
