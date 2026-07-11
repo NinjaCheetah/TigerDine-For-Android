@@ -1,5 +1,6 @@
 package dev.ninjacheetah.tigerdine.ui
 
+import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,6 +49,8 @@ import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
 import dev.ninjacheetah.tigerdine.ui.components.LoadingScreen
 import dev.ninjacheetah.tigerdine.ui.navigation.Routes
+import dev.ninjacheetah.tigerdine.util.formatLastRefreshed
+import kotlin.time.Instant
 
 @ExperimentalMaterial3Api
 @ExperimentalMaterial3ExpressiveApi
@@ -56,6 +60,8 @@ fun HomeScreen(
     viewModel: DiningModel = viewModel(),
     navController: NavController
 ) {
+    val use24Hour = DateFormat.is24HourFormat(LocalContext.current)
+
     var searchText by rememberSaveable { mutableStateOf("") }
     var showFilterMenu by rememberSaveable { mutableStateOf(false) }
     var showTopBarMenu by rememberSaveable { mutableStateOf(false) }
@@ -135,6 +141,7 @@ fun HomeScreen(
             ) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(3.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp)
@@ -259,6 +266,14 @@ fun HomeScreen(
                         openLocationsOnly = openLocationsOnly,
                         openLocationsFirst = openLocationsFirst
                     )
+
+                    if (viewModel.lastRefreshed != null) {
+                        Text(
+                            "Last refreshed: ${(viewModel.lastRefreshed as Instant).formatLastRefreshed(use24Hour)}",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

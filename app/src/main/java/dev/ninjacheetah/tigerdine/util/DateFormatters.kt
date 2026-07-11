@@ -89,6 +89,19 @@ fun Instant.formatNextOpen(
     return "${this.formatTigerDine(use24Hour)} $weekday"
 }
 
+fun Instant.formatLastRefreshed(
+    use24Hour: Boolean
+): String {
+    val timeZone = TimeZone.of("America/New_York")
+    val date = this.toLocalDateTime(timeZone).date
+
+    return "%02d/%02d/%04d, ".format(
+        date.month.number,
+        date.day,
+        date.year
+    ) + this.formatTigerDine(use24Hour)
+}
+
 fun LocalDateTime.toYyyyMmDd(): String =
     "%04d-%02d-%02d".format(year, month.number, day)
 
