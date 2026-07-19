@@ -7,6 +7,8 @@ object Routes {
 
     const val ABOUT = "about"
 
+    const val FEEDBACK = "feedback"
+
     const val DONATE = "donate"
 
     const val DETAIL = "detail"

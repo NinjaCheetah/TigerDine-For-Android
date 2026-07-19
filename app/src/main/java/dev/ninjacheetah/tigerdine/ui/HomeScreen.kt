@@ -117,12 +117,27 @@ fun HomeScreen(
                                 },
                                 onClick = {
                                     if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                        showTopBarMenu = false
                                         navController.navigate(Routes.ABOUT)
                                     }
                                 }
                             )
 
-                            // FEEDBACK GOES IN THE MIDDLE
+                            DropdownMenuItem(
+                                text = { Text("Feedback") },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.send_24px),
+                                        contentDescription = "Feedback"
+                                    )
+                                },
+                                onClick = {
+                                    if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                        showTopBarMenu = false
+                                        navController.navigate(Routes.FEEDBACK)
+                                    }
+                                }
+                            )
 
                             DropdownMenuItem(
                                 text = { Text("Donate") },
@@ -134,6 +149,7 @@ fun HomeScreen(
                                 },
                                 onClick = {
                                     if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                        showTopBarMenu = false
                                         navController.navigate(Routes.DONATE)
                                     }
                                 }
