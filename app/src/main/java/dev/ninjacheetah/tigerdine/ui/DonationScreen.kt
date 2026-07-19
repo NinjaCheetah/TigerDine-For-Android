@@ -19,6 +19,7 @@ import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -28,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -35,6 +37,7 @@ import dev.ninjacheetah.tigerdine.R
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
 import dev.ninjacheetah.tigerdine.ui.navigation.Routes
+import dev.ninjacheetah.tigerdine.ui.theme.TigerDineTheme
 
 @ExperimentalMaterial3Api
 @ExperimentalMaterial3ExpressiveApi
@@ -58,6 +61,17 @@ fun DonationScreen(
         }
     }
 
+    DonationScreenContent(
+        onOpenUri = { uriHandler.openUri(it) }
+    )
+}
+
+@ExperimentalMaterial3Api
+@ExperimentalMaterial3ExpressiveApi
+@Composable
+fun DonationScreenContent(
+    onOpenUri: (String) -> Unit
+) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceDim,
         modifier = Modifier.fillMaxSize()
@@ -124,8 +138,15 @@ fun DonationScreen(
                     supportingContent = {
                         Text("Chip in as much or as little as you'd like!")
                     },
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_24px),
+                            contentDescription = "An icon of a chevron pointing to the right",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     onClick = {
-                        uriHandler.openUri("https://ko-fi.com/ninjacheetah")
+                        onOpenUri("https://ko-fi.com/ninjacheetah")
                     },
                     shapes = ListItemDefaults.segmentedShapes(
                         index = 0,
@@ -154,7 +175,14 @@ fun DonationScreen(
                         Text("PayPal won't take a cut this way!")
                     },
                     onClick = {
-                        uriHandler.openUri("https://paypal.me/NinjaCheetahX")
+                        onOpenUri("https://paypal.me/NinjaCheetahX")
+                    },
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_24px),
+                            contentDescription = "An icon of a chevron pointing to the right",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     },
                     shapes = ListItemDefaults.segmentedShapes(
                         index = 1,
@@ -165,6 +193,17 @@ fun DonationScreen(
                     ),
                 )
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+fun DonationScreenPreview() {
+    TigerDineTheme {
+        CompositionLocalProvider(LocalTopBarStateUpdater provides {}) {
+            DonationScreenContent(onOpenUri = {})
         }
     }
 }

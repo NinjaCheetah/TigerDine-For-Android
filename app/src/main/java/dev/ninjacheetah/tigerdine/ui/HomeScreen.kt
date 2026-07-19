@@ -19,8 +19,10 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -176,7 +178,7 @@ fun HomeScreen(
                 modifier = modifier
             ) {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .verticalScroll(rememberScrollState())
@@ -259,41 +261,37 @@ fun HomeScreen(
                         }
                     )
 
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        shape = RoundedCornerShape(16.dp),
+                    SegmentedListItem(
+                        verticalAlignment = Alignment.CenterVertically,
+                        content = {
+                            Text(
+                                "Upcoming Visiting Chefs",
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        },
+                        trailingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.chevron_right_24px),
+                                contentDescription = "An icon of a chevron pointing to the right",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
                         onClick = {
                             if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
                                 navController.navigate(Routes.VISITING_CHEFS)
                             }
-                        }
-                    ) {
-                        Surface(
-                            modifier = modifier
-                                .fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.surfaceContainer
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .align(Alignment.CenterHorizontally)
-                                    .padding(12.dp)
-                            ) {
-                                Text(
-                                    "Upcoming Visiting Chefs",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Icon(
-                                    painter = painterResource(R.drawable.chevron_right_24px),
-                                    contentDescription = "Navigate",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                    }
+                        },
+                        shapes = ListItemDefaults.shapes(
+                            shape = RoundedCornerShape(25),
+                            pressedShape = RoundedCornerShape(25),
+                            selectedShape = RoundedCornerShape(25),
+                            focusedShape = RoundedCornerShape(25),
+                            hoveredShape = RoundedCornerShape(25)
+                        ),
+                        colors = ListItemDefaults.colors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        )
+                    )
 
                     LocationList(
                         viewModel = viewModel,

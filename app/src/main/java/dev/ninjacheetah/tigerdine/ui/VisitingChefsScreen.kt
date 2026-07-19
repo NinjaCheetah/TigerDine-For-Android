@@ -177,7 +177,7 @@ fun VisitingChefsScreen(
                                     onClick = { },
                                     shapes = ListItemDefaults.segmentedShapes(
                                         index = 0,
-                                        count = 0
+                                        count = location.visitingChefs.count() + 1
                                     ),
                                     content = {
                                         Row {

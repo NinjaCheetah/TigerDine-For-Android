@@ -79,82 +79,96 @@ fun LocationList(
             ?: emptyList()
     }
 
-    if (viewModel.isLoaded) {
-        if (filteredLocations.isEmpty()) {
-            Row(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text("No results found.")
+    // The list should handle its own spacing rather than letting the container including it
+    // make that call.
+    Column(
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
+        if (viewModel.isLoaded) {
+            if (filteredLocations.isEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text("No results found.")
+                }
             }
-        }
 
-        for (location in filteredLocations) {
-            SegmentedListItem(
-                verticalAlignment = Alignment.CenterVertically,
-                supportingContent = {
-                    when (location.open) {
-                        OpenStatus.OPEN -> Text("Open", color = Color.Green)
-                        OpenStatus.CLOSED -> Text("Closed", color = Color.Red)
-                        OpenStatus.OPENING_SOON -> Text(
-                            "Opening Soon",
-                            color = Color.hsl(32f, 1.00f, 0.48f)
-                        )
+            for (location in filteredLocations) {
+                SegmentedListItem(
+                    verticalAlignment = Alignment.CenterVertically,
+                    supportingContent = {
+                        when (location.open) {
+                            OpenStatus.OPEN -> Text("Open", color = Color.Green)
+                            OpenStatus.CLOSED -> Text("Closed", color = Color.Red)
+                            OpenStatus.OPENING_SOON -> Text(
+                                "Opening Soon",
+                                color = Color.hsl(32f, 1.00f, 0.48f)
+                            )
 
-                        OpenStatus.CLOSING_SOON -> Text(
-                            "Closing Soon",
-                            color = Color.hsl(32f, 1.00f, 0.48f)
-                        )
-                    }
-                },
-                trailingContent = {
-                    if (location.diningTimes != null) {
-                        Column {
-                            location.diningTimes.forEach { opening ->
-                                Text(
-                                    text = "${opening.openTime.formatTigerDine(use24Hour)} - ${opening.closeTime.formatTigerDine(use24Hour)}",
-                                    style = MaterialTheme.typography.titleSmall
+                            OpenStatus.CLOSING_SOON -> Text(
+                                "Closing Soon",
+                                color = Color.hsl(32f, 1.00f, 0.48f)
+                            )
+                        }
+                    },
+                    trailingContent = {
+                        if (location.diningTimes != null) {
+                            Column {
+                                location.diningTimes.forEach { opening ->
+                                    Text(
+                                        text = "${opening.openTime.formatTigerDine(use24Hour)} - ${
+                                            opening.closeTime.formatTigerDine(
+                                                use24Hour
+                                            )
+                                        }",
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                }
+                            }
+                        } else {
+                            Text(
+                                "Not Open Today",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                        }
+                    },
+                    onClick = {
+                        if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                            viewModel.focusedLocationId = location.id
+                            navController.navigate(Routes.DETAIL)
+                        }
+                    },
+                    shapes = ListItemDefaults.segmentedShapes(
+                        index = filteredLocations.indexOf(
+                            location
+                        ), count = filteredLocations.count()
+                    ),
+                    content = {
+                        Row {
+                            Text(
+                                text = location.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+
+                            if (viewModel.favoriteLocations.collectAsState().value.contains(location.id)) {
+                                Icon(
+                                    painter = painterResource(R.drawable.star_fill_24px),
+                                    contentDescription = "Favorite location",
+                                    tint = Color.hsl(48.0f, 1.00f, 0.50f),
+                                    modifier = Modifier.padding(start = 4.dp)
                                 )
                             }
                         }
-                    } else {
-                        Text(
-                            "Not Open Today",
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                    }
-                },
-                onClick = {
-                    if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
-                        viewModel.focusedLocationId = location.id
-                        navController.navigate(Routes.DETAIL)
-                    }
-                },
-                shapes = ListItemDefaults.segmentedShapes(index = filteredLocations.indexOf(location), count = filteredLocations.count()),
-                content = {
-                    Row {
-                        Text(
-                            text = location.name,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-
-                        if (viewModel.favoriteLocations.collectAsState().value.contains(location.id)) {
-                            Icon(
-                                painter = painterResource(R.drawable.star_fill_24px),
-                                contentDescription = "Favorite location",
-                                tint = Color.hsl(48.0f, 1.00f, 0.50f),
-                                modifier = Modifier.padding(start = 4.dp)
-                            )
-                        }
-                    }
-                },
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                ),
-            )
+                    },
+                    colors = ListItemDefaults.colors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    ),
+                )
+            }
         }
     }
 }

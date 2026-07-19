@@ -143,6 +143,13 @@ fun AboutScreenContent(
                     content = {
                         Text("Source Code")
                     },
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_24px),
+                            contentDescription = "An icon of a chevron pointing to the right",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     onClick = {
                         onOpenUri("https://github.com/NinjaCheetah/TigerDine-for-Android")
                     },
@@ -165,6 +172,13 @@ fun AboutScreenContent(
                     },
                     content = {
                         Text("TigerCenter")
+                    },
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_24px),
+                            contentDescription = "An icon of a chevron pointing to the right",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     },
                     onClick = {
                         onOpenUri("https://tigercenter.rit.edu")
@@ -189,6 +203,13 @@ fun AboutScreenContent(
                     content = {
                         Text("Official RIT Map")
                     },
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_24px),
+                            contentDescription = "An icon of a chevron pointing to the right",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     onClick = {
                         onOpenUri("https://maps.rit.edu")
                     },
@@ -211,6 +232,13 @@ fun AboutScreenContent(
                     },
                     content = {
                         Text("FD MealPlanner")
+                    },
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_24px),
+                            contentDescription = "An icon of a chevron pointing to the right",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     },
                     onClick = {
                         onOpenUri("https://fdmealplanner.com/")

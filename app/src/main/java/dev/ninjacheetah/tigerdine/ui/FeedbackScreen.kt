@@ -111,6 +111,13 @@ fun FeedbackScreenContent(
                     supportingContent = {
                         Text("Check that the hours displayed in TigerDine match RIT's website.")
                     },
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_24px),
+                            contentDescription = "An icon of a chevron pointing to the right",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     onClick = {
                         onOpenUri("https://www.rit.edu/dining/locations")
                     },
@@ -136,6 +143,13 @@ fun FeedbackScreenContent(
                     },
                     supportingContent = {
                         Text("If hours are also incorrect on RIT's website, submit a ticket to ITS.")
+                    },
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_24px),
+                            contentDescription = "An icon of a chevron pointing to the right",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     },
                     onClick = {
                         onOpenUri("https://www.rit.edu/its/support")
@@ -179,6 +193,13 @@ fun FeedbackScreenContent(
                     supportingContent = {
                         Text("Report a bug or suggest a feature on TigerDine for Android's GitHub repository.")
                     },
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_24px),
+                            contentDescription = "An icon of a chevron pointing to the right",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
                     onClick = {
                         onOpenUri("https://github.com/NinjaCheetah/TigerDine-for-Android/issues")
                     },
@@ -204,6 +225,13 @@ fun FeedbackScreenContent(
                     },
                     supportingContent = {
                         Text("Not a GitHub user? Feel free to submit feedback via email.")
+                    },
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_24px),
+                            contentDescription = "An icon of a chevron pointing to the right",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     },
                     onClick = {
                         onOpenUri("mailto:campbell@ninjacheetah.dev")
