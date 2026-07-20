@@ -167,7 +167,7 @@ fun VisitingChefsScreen(
                     locationsWithChefsByDay[focusedIndex].forEach { location ->
                         if (!location.visitingChefs.isNullOrEmpty()) {
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(3.dp),
+                                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
                                 modifier = Modifier.padding(0.dp, 8.dp)
                             ) {
                                 SegmentedListItem(

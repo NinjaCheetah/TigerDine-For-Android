@@ -82,7 +82,7 @@ fun LocationList(
     // The list should handle its own spacing rather than letting the container including it
     // make that call.
     Column(
-        verticalArrangement = Arrangement.spacedBy(3.dp)
+        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
     ) {
         if (viewModel.isLoaded) {
             if (filteredLocations.isEmpty()) {

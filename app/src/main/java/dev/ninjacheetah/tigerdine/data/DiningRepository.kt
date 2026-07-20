@@ -30,7 +30,7 @@ class DiningRepository(
                     ?: Clock.System.now().toLocalDateTime(zone)
 
             val url = "https://tigercenter.rit.edu/tigerCenterApi/tc/dining-all?date=${targetDate.toYyyyMmDd()}"
-            //val url = "https://tigercenter.rit.edu/tigerCenterApi/tc/dining-all?date=2026-04-24"
+            //val url = "https://tigercenter.rit.edu/tigerCenterApi/tc/dining-all?date=2026-04-23"
 
             val request = JsonObjectRequest(
                 Request.Method.GET,

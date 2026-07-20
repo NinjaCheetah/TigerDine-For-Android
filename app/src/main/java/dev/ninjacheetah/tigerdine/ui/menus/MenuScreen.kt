@@ -168,7 +168,7 @@ fun MenuScreen(
             }
         } else {
             Column(
-                verticalArrangement = Arrangement.spacedBy(3.dp),
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)

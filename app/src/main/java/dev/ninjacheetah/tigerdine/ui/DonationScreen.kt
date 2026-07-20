@@ -119,7 +119,7 @@ fun DonationScreenContent(
             }
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(3.dp),
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
             ) {
                 SegmentedListItem(
                     verticalAlignment = Alignment.CenterVertically,

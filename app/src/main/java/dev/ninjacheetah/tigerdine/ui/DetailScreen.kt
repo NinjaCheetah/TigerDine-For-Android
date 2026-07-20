@@ -1,15 +1,20 @@
 package dev.ninjacheetah.tigerdine.ui
 
 import android.text.format.DateFormat
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -23,7 +28,9 @@ import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +46,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -49,16 +57,21 @@ import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
+import dev.ninjacheetah.tigerdine.data.types.DailySpecial
+import dev.ninjacheetah.tigerdine.data.types.DiningLocation
+import dev.ninjacheetah.tigerdine.data.types.DiningTimes
+import dev.ninjacheetah.tigerdine.data.types.FDMPIds
 import dev.ninjacheetah.tigerdine.data.types.OpenStatus
+import dev.ninjacheetah.tigerdine.data.types.VisitingChef
 import dev.ninjacheetah.tigerdine.data.types.VisitingChefStatus
 import dev.ninjacheetah.tigerdine.data.types.WeeklyHours
 import dev.ninjacheetah.tigerdine.ui.navigation.Routes
+import dev.ninjacheetah.tigerdine.ui.theme.TigerDineTheme
 import dev.ninjacheetah.tigerdine.util.formatNextOpen
 import dev.ninjacheetah.tigerdine.util.formatTigerDine
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import androidx.compose.runtime.collectAsState
-import dev.ninjacheetah.tigerdine.data.types.DiningLocation
+import kotlin.time.Instant
 
 @ExperimentalMaterial3ExpressiveApi
 @Composable
@@ -110,6 +123,31 @@ fun DetailScreen(
         }
 
         newWeeklyHours
+    }
+
+    var opensNext = ""
+
+    for (day in viewModel.locationsByDay) {
+        if (opensNext != "") {
+            break
+        }
+
+        if (viewModel.locationsByDay.indexOf(day) == 0) {
+            continue
+        }
+
+        for (loc in day) {
+            if (loc.id == viewModel.focusedLocationId) {
+                if (!loc.diningTimes.isNullOrEmpty()) {
+                    opensNext = "Opens ${
+                        loc.diningTimes.first().openTime.formatNextOpen(
+                            use24Hour
+                        )
+                    }"
+                    break
+                }
+            }
+        }
     }
 
     val updateTopBar = LocalTopBarStateUpdater.current
@@ -173,6 +211,34 @@ fun DetailScreen(
         viewModel.getHoursByDayIfNeeded()
     }
 
+    DetailScreenContent(
+        location = location,
+        use24Hour = use24Hour,
+        weeklyHours = weeklyHours,
+        opensNext = opensNext,
+        expandHours = expandHours,
+        onExpandHoursChange = { expandHours = it },
+        expandChefs = expandChefs,
+        onExpandChefsChange = { expandChefs = it },
+        expandDailies = expandDailies,
+        onExpandDailiesChange = { expandDailies = it }
+    )
+}
+
+@ExperimentalMaterial3ExpressiveApi
+@Composable
+fun DetailScreenContent(
+    location: DiningLocation?,
+    use24Hour: Boolean,
+    weeklyHours: List<WeeklyHours>,
+    opensNext: String,
+    expandHours: Boolean,
+    onExpandHoursChange: (Boolean) -> Unit,
+    expandChefs: Boolean,
+    onExpandChefsChange: (Boolean) -> Unit,
+    expandDailies: Boolean,
+    onExpandDailiesChange: (Boolean) -> Unit
+) {
     val screenWidth = LocalWindowInfo.current.containerDpSize.width
     val isWideScreen = screenWidth >= 600.dp
 
@@ -198,66 +264,17 @@ fun DetailScreen(
                             .fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier.width((screenWidth / 2))
-                        ) {
-                            Column {
-                                Text(
-                                    location.name,
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Text(
-                                    location.summary,
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                        Spacer(Modifier.weight(1f))
-                        Column(
-                            horizontalAlignment = Alignment.End,
-                        ) {
-                            when (location.open) {
-                                OpenStatus.OPEN -> Text(
-                                    "Open",
-                                    color = Color.Green,
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-
-                                OpenStatus.CLOSED -> Text(
-                                    "Closed",
-                                    color = Color.Red,
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-
-                                OpenStatus.OPENING_SOON -> Text(
-                                    "Opening Soon",
-                                    color = Color.hsl(32f, 1.00f, 0.48f),
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-
-                                OpenStatus.CLOSING_SOON -> Text(
-                                    "Closing Soon",
-                                    color = Color.hsl(32f, 1.00f, 0.48f),
-                                    style = MaterialTheme.typography.titleLarge
-                                )
-                            }
-                            if (location.diningTimes != null) {
-                                location.diningTimes.forEach { opening ->
-                                    Text(
-                                        "${opening.openTime.formatTigerDine(use24Hour)} - ${
-                                            opening.closeTime.formatTigerDine(
-                                                use24Hour
-                                            )
-                                        }",
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                }
-                            } else {
-                                Text("Not Open Today")
-                            }
+                        Column {
+                            Text(
+                                location.name,
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                location.summary,
+                                style = MaterialTheme.typography.titleLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                     }
                 }
@@ -275,15 +292,15 @@ fun DetailScreen(
                         ) {
                             LocationInfoList(
                                 location = location,
-                                viewModel = viewModel,
                                 use24Hour = use24Hour,
                                 weeklyHours = weeklyHours,
+                                opensNext = opensNext,
                                 expandHours = expandHours,
-                                onExpandHoursChange = { expandHours = it },
+                                onExpandHoursChange = onExpandHoursChange,
                                 expandChefs = expandChefs,
-                                onExpandChefsChange = { expandChefs = it },
+                                onExpandChefsChange = onExpandChefsChange,
                                 expandDailies = expandDailies,
-                                onExpandDailiesChange = { expandDailies = it }
+                                onExpandDailiesChange = onExpandDailiesChange
                             )
                         }
                         DescriptionCard(
@@ -300,15 +317,15 @@ fun DetailScreen(
                     ) {
                         LocationInfoList(
                             location = location,
-                            viewModel = viewModel,
                             use24Hour = use24Hour,
                             weeklyHours = weeklyHours,
+                            opensNext = opensNext,
                             expandHours = expandHours,
-                            onExpandHoursChange = { expandHours = it },
+                            onExpandHoursChange = onExpandHoursChange,
                             expandChefs = expandChefs,
-                            onExpandChefsChange = { expandChefs = it },
+                            onExpandChefsChange = onExpandChefsChange,
                             expandDailies = expandDailies,
-                            onExpandDailiesChange = { expandDailies = it }
+                            onExpandDailiesChange = onExpandDailiesChange
                         )
                         DescriptionCard(
                             description = location.desc
@@ -326,9 +343,9 @@ fun DetailScreen(
 @Composable
 private fun LocationInfoList(
     location: DiningLocation,
-    viewModel: DiningModel,
     use24Hour: Boolean,
     weeklyHours: List<WeeklyHours>,
+    opensNext: String,
     expandHours: Boolean,
     onExpandHoursChange: (Boolean) -> Unit,
     expandChefs: Boolean,
@@ -336,166 +353,254 @@ private fun LocationInfoList(
     expandDailies: Boolean,
     onExpandDailiesChange: (Boolean) -> Unit
 ) {
+    val hasVisitingChefs = !location.visitingChefs.isNullOrEmpty()
+    val hasDailySpecials = !location.dailySpecials.isNullOrEmpty()
+    val segmentCount = 1 + (if (hasVisitingChefs) 1 else 0) + (if (hasDailySpecials) 1 else 0)
+    var currentSegmentIndex = 0
+
     Column(
-        verticalArrangement = Arrangement.spacedBy(3.dp),
+        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap),
     ) {
         SegmentedListItem(
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+            contentPadding = PaddingValues(16.dp),
             leadingContent = {
                 Icon(
                     painter = painterResource(R.drawable.schedule_24px),
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            },
-            trailingContent = {
-                Icon(
-                    painter = painterResource(R.drawable.keyboard_arrow_up_24px),
-                    contentDescription = "Back",
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.rotate(if (expandHours) 0F else 180F)
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(top = 2.dp)
                 )
             },
             onClick = {
                 onExpandHoursChange(!expandHours)
             },
-            shapes = ListItemDefaults.segmentedShapes(
-                index = 0,
-                count = if (!location.visitingChefs.isNullOrEmpty() || !location.dailySpecials.isNullOrEmpty() || expandHours) 2 else 1
+            shapes = if (segmentCount == 1) ListItemDefaults.shapes(shape = MaterialTheme.shapes.medium) else ListItemDefaults.segmentedShapes(
+                index = currentSegmentIndex++,
+                count = segmentCount
             ),
             content = {
-                Row {
-                    when (location.open) {
-                        OpenStatus.OPEN -> Text(
-                            "Open",
-                            color = Color.Green,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        when (location.open) {
+                            OpenStatus.OPEN -> Text(
+                                "Open",
+                                color = Color.Green,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
 
-                        OpenStatus.CLOSED -> Text(
-                            "Closed",
-                            color = Color.Red,
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                            OpenStatus.CLOSED -> Text(
+                                "Closed",
+                                color = Color.Red,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
 
-                        OpenStatus.OPENING_SOON -> Text(
-                            "Opening Soon",
-                            color = Color.hsl(32f, 1.00f, 0.48f),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
+                            OpenStatus.OPENING_SOON -> Text(
+                                "Opening Soon",
+                                color = Color.hsl(32f, 1.00f, 0.48f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
 
-                        OpenStatus.CLOSING_SOON -> Text(
-                            "Closing Soon",
-                            color = Color.hsl(32f, 1.00f, 0.48f),
-                            style = MaterialTheme.typography.bodyLarge
+                            OpenStatus.CLOSING_SOON -> Text(
+                                "Closing Soon",
+                                color = Color.hsl(32f, 1.00f, 0.48f),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
+                        Text(
+                            text = " • "
+                        )
+                        if (location.open == OpenStatus.OPEN || location.open == OpenStatus.CLOSING_SOON) {
+                            Text(
+                                text = "Closes ${
+                                    location.diningTimes?.first()?.closeTime?.formatTigerDine(
+                                        use24Hour
+                                    )
+                                }"
+                            )
+                        } else {
+                            if (opensNext != "") {
+                                Text(
+                                    text = opensNext
+                                )
+                            } else {
+                                Text(
+                                    text = "Closed this week"
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.weight(1f))
+                        Icon(
+                            painter = painterResource(R.drawable.keyboard_arrow_up_24px),
+                            contentDescription = if (expandHours) "Collapse Hours" else "Expand Hours",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .rotate(if (expandHours) 0f else 180f)
                         )
                     }
-                    Text(
-                        text = " • "
-                    )
-                    if (location.open == OpenStatus.OPEN || location.open == OpenStatus.CLOSING_SOON) {
-                        Text(
-                            text = "Closes ${
-                                location.diningTimes?.first()?.closeTime?.formatTigerDine(
-                                    use24Hour
-                                )
-                            }"
-                        )
-                    } else {
-                        var opensNext = ""
-
-                        for (day in viewModel.locationsByDay) {
-                            if (opensNext != "") {
-                                break
-                            }
-
-                            if (viewModel.locationsByDay.indexOf(day) == 0) {
-                                println("triggered")
-                                continue
-                            }
-
-                            for (loc in day) {
-                                if (loc.id == viewModel.focusedLocationId) {
-                                    if (!loc.diningTimes.isNullOrEmpty()) {
-                                        opensNext = "Opens ${
-                                            loc.diningTimes.first().openTime.formatNextOpen(
-                                                use24Hour
-                                            )
-                                        }"
-                                        break
+                    AnimatedVisibility(
+                        visible = expandHours,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(top = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            for (day in weeklyHours) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    if (weeklyHours.indexOf(day) == 0) {
+                                        Text(
+                                            text = day.day,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        Column {
+                                            for (timeString in day.timeStrings) {
+                                                Text(
+                                                    text = timeString,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        Text(
+                                            text = day.day,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                        )
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        Column {
+                                            for (timeString in day.timeStrings) {
+                                                Text(
+                                                    text = timeString,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
-                        if (opensNext != "") {
-                            Text(
-                                text = opensNext
-                            )
-                        } else {
-                            Text(
-                                text = "Closed this week"
-                            )
-                        }
                     }
                 }
-
             },
             colors = ListItemDefaults.colors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
             ),
         )
-        if (expandHours) {
+
+        if (hasVisitingChefs) {
             SegmentedListItem(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                contentPadding = PaddingValues(16.dp),
                 leadingContent = {
-
+                    Icon(
+                        painter = painterResource(R.drawable.hand_meal_24px),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier
+                            .size(20.dp)
+                            .padding(top = 2.dp)
+                    )
                 },
-                trailingContent = {
-
+                onClick = {
+                    onExpandChefsChange(!expandChefs)
                 },
-                onClick = {},
-                shapes = ListItemDefaults.segmentedShapes(
-                    index = 1,
-                    count = if (!location.visitingChefs.isNullOrEmpty() || !location.dailySpecials.isNullOrEmpty()) 3 else 2
+                shapes = if (segmentCount == 1) ListItemDefaults.shapes(shape = MaterialTheme.shapes.medium) else ListItemDefaults.segmentedShapes(
+                    index = currentSegmentIndex++,
+                    count = segmentCount
                 ),
                 content = {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        for (day in weeklyHours) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.Top
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Today's Visiting Chefs",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Icon(
+                                painter = painterResource(R.drawable.keyboard_arrow_up_24px),
+                                contentDescription = if (expandChefs) "Collapse Visiting Chefs" else "Expand Visiting Chefs",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .rotate(if (expandChefs) 0f else 180f)
+                            )
+                        }
+                        AnimatedVisibility(
+                            visible = expandChefs,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(top = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                if (weeklyHours.indexOf(day) == 0) {
-                                    Text(
-                                        text = day.day,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Column {
-                                        for (timeString in day.timeStrings) {
+                                location.visitingChefs.forEach { chef ->
+                                    Row(
+                                        verticalAlignment = Alignment.Top
+                                    ) {
+                                        Column {
                                             Text(
-                                                text = timeString,
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                fontWeight = FontWeight.Bold
+                                                chef.name,
+                                                style = MaterialTheme.typography.bodyMedium
                                             )
+                                            when (chef.status) {
+                                                VisitingChefStatus.HERE_NOW -> Text(
+                                                    "Here Now",
+                                                    color = Color.Green,
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+
+                                                VisitingChefStatus.GONE -> Text(
+                                                    "Left For Today",
+                                                    color = Color.Red,
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+
+                                                VisitingChefStatus.ARRIVING_LATER -> Text(
+                                                    "Arriving Later",
+                                                    color = Color.Red,
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+
+                                                VisitingChefStatus.ARRIVING_SOON -> Text(
+                                                    "Arriving Soon",
+                                                    color = Color.hsl(32f, 1.00f, 0.48f),
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+
+                                                VisitingChefStatus.LEAVING_SOON -> Text(
+                                                    "Leaving Soon",
+                                                    color = Color.hsl(32f, 1.00f, 0.48f),
+                                                    style = MaterialTheme.typography.bodyMedium
+                                                )
+                                            }
                                         }
-                                    }
-                                } else {
-                                    Text(
-                                        text = day.day,
-                                    )
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Column {
-                                        for (timeString in day.timeStrings) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        Column {
                                             Text(
-                                                text = timeString,
-                                                style = MaterialTheme.typography.bodyLarge,
+                                                "${chef.openTime.formatTigerDine(use24Hour)} - ${
+                                                    chef.closeTime.formatTigerDine(
+                                                        use24Hour
+                                                    )
+                                                }",
+                                                style = MaterialTheme.typography.bodyMedium
                                             )
                                         }
                                     }
@@ -509,196 +614,83 @@ private fun LocationInfoList(
                 ),
             )
         }
-        if (!location.visitingChefs.isNullOrEmpty()) {
+
+        if (hasDailySpecials) {
             SegmentedListItem(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                leadingContent = {
-                    Icon(
-                        painter = painterResource(R.drawable.hand_meal_24px),
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                trailingContent = {
-                    Icon(
-                        painter = painterResource(R.drawable.keyboard_arrow_up_24px),
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.rotate(if (expandChefs) 0F else 180F)
-                    )
-                },
-                onClick = {
-                    onExpandChefsChange(!expandChefs)
-                },
-                shapes = ListItemDefaults.segmentedShapes(
-                    index = 3,
-                    count = 2
-                ),
-                content = {
-                    Text(
-                        "Today's Visiting Chefs",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                },
-                colors = ListItemDefaults.colors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                ),
-            )
-            if (expandChefs) {
-                SegmentedListItem(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    leadingContent = { },
-                    trailingContent = { },
-                    onClick = { },
-                    shapes = ListItemDefaults.segmentedShapes(
-                        index = 4,
-                        count = 6
-                    ),
-                    content = {
-                        Column {
-                            location.visitingChefs.forEach { chef ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column {
-                                        Text(
-                                            chef.name,
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                        when (chef.status) {
-                                            VisitingChefStatus.HERE_NOW -> Text(
-                                                "Here Now",
-                                                color = Color.Green,
-                                                style = MaterialTheme.typography.bodyLarge
-                                            )
-
-                                            VisitingChefStatus.GONE -> Text(
-                                                "Left For Today",
-                                                color = Color.Red,
-                                                style = MaterialTheme.typography.bodyLarge
-                                            )
-
-                                            VisitingChefStatus.ARRIVING_LATER -> Text(
-                                                "Arriving Later",
-                                                color = Color.Red,
-                                                style = MaterialTheme.typography.bodyLarge
-                                            )
-
-                                            VisitingChefStatus.ARRIVING_SOON -> Text(
-                                                "Arriving Soon",
-                                                color = Color.hsl(32f, 1.00f, 0.48f),
-                                                style = MaterialTheme.typography.bodyLarge
-                                            )
-
-                                            VisitingChefStatus.LEAVING_SOON -> Text(
-                                                "Leaving Soon",
-                                                color = Color.hsl(32f, 1.00f, 0.48f),
-                                                style = MaterialTheme.typography.bodyLarge
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Column {
-                                        Text(
-                                            "${chef.openTime.formatTigerDine(use24Hour)} - ${
-                                                chef.closeTime.formatTigerDine(
-                                                    use24Hour
-                                                )
-                                            }",
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    colors = ListItemDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    ),
-                )
-            }
-        }
-        if (!location.dailySpecials.isNullOrEmpty()) {
-            SegmentedListItem(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                contentPadding = PaddingValues(16.dp),
                 leadingContent = {
                     Icon(
                         painter = painterResource(R.drawable.restaurant_24px),
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                trailingContent = {
-                    Icon(
-                        painter = painterResource(R.drawable.keyboard_arrow_up_24px),
-                        contentDescription = "Back",
+                        contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.rotate(if (expandDailies) 0F else 180F)
+                        modifier = Modifier
+                            .size(20.dp)
+                            .padding(top = 2.dp)
                     )
                 },
                 onClick = {
                     onExpandDailiesChange(!expandDailies)
                 },
-                shapes = ListItemDefaults.segmentedShapes(
-                    index = 4,
-                    count = if (expandDailies) 6 else 5
+                shapes = if (segmentCount == 1) ListItemDefaults.shapes(shape = MaterialTheme.shapes.medium) else ListItemDefaults.segmentedShapes(
+                    index = currentSegmentIndex++,
+                    count = segmentCount
                 ),
                 content = {
-                    Text(
-                        "Today's Daily Specials",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
+                    Column {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Today's Daily Specials",
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Icon(
+                                painter = painterResource(R.drawable.keyboard_arrow_up_24px),
+                                contentDescription = if (expandDailies) "Collapse Specials" else "Expand Specials",
+                                tint = MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .rotate(if (expandDailies) 0f else 180f)
+                            )
+                        }
+                        AnimatedVisibility(
+                            visible = expandDailies,
+                            enter = expandVertically() + fadeIn(),
+                            exit = shrinkVertically() + fadeOut()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(top = 16.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                location.dailySpecials.forEach { special ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = special.name,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        Text(
+                                            text = special.type,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            textAlign = TextAlign.Right
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                 },
                 colors = ListItemDefaults.colors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
             )
-            if (expandDailies) {
-                SegmentedListItem(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    leadingContent = { },
-                    trailingContent = { },
-                    onClick = { },
-                    shapes = ListItemDefaults.segmentedShapes(
-                        index = 5,
-                        count = 6
-                    ),
-                    content = {
-                        Column {
-                            location.dailySpecials.forEach { special ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = special.name,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.SemiBold,
-                                    )
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Text(
-                                        text = special.type,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        textAlign = TextAlign.Right
-                                    )
-
-                                }
-                            }
-                        }
-                    },
-                    colors = ListItemDefaults.colors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    ),
-                )
-            }
         }
     }
 }
@@ -718,5 +710,129 @@ private fun DescriptionCard(
             text = description,
             modifier = Modifier.padding(16.dp)
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Preview(showBackground = true)
+@Composable
+fun DetailScreenPreview() {
+    TigerDineTheme {
+        CompositionLocalProvider(LocalTopBarStateUpdater provides {}) {
+            DetailScreenContent(
+                // This sample data is taken from the actual data for Crossroads on April 23, 2026.
+                // Why this day? I kept using Imagine's date as a sample, but then I realized that
+                // a weekend date is maybe not the best to test with. So I just stepped it back
+                // a single day to get a better picture of what a typical day looks like.
+                location = DiningLocation(
+                    id = 23,
+                    mdoId = 123,
+                    fdmpIds = FDMPIds(
+                        locationId = 7,
+                        accountId = 7
+                    ),
+                    name = "The Cafe & Market at Crossroads",
+                    summary = "Restaurant and Convenience Store",
+                    desc = """
+                        Located in the Crossroads building in Global Village, the Cafe and Market at Crossroads features a food court and convenience store. Inside of Crossroads are eight different food stations: grill, salad bar, pasta toss, pizza, Asian cuisine, deli, chef specials, and visiting chefs.
+                        This location is cashless everyday after 7 p.m. Customers using cash may use a Tiger Spend Reload Station to add funds to an existing RIT ID card or a Reload Card.
+                    """.trimIndent(),
+                    mapsUrl = "https://maps.rit.edu/?mdo_id=123",
+                    date = Instant.fromEpochMilliseconds(1776960000000),
+                    diningTimes = listOf(
+                        DiningTimes(
+                            openTime = Instant.fromEpochMilliseconds(1776954600000),
+                            closeTime = Instant.fromEpochMilliseconds(1776992400000)
+                        )
+                    ),
+                    open = OpenStatus.OPEN,
+                    visitingChefs = listOf(
+                        VisitingChef(
+                            name = "Esan's Kitchen",
+                            description = "Traditional Nigerian cuisine",
+                            openTime = Instant.fromEpochMilliseconds(1776956400000),
+                            closeTime = Instant.fromEpochMilliseconds(1776967200000),
+                            status = VisitingChefStatus.HERE_NOW
+                        ),
+                        VisitingChef(
+                            name = "P.H. Express",
+                            description = "Traditional Pakistani cuisine",
+                            openTime = Instant.fromEpochMilliseconds(1776974400000),
+                            closeTime = Instant.fromEpochMilliseconds(1776985200000),
+                            status = VisitingChefStatus.ARRIVING_LATER
+                        )
+                    ),
+                    dailySpecials = listOf(
+                        DailySpecial(
+                            name = "General Tso Chicken",
+                            type = "asian"
+                        ),
+                        DailySpecial(
+                            name = "Poutine",
+                            type = "Grill"
+                        )
+                    )
+                ),
+                use24Hour = false,
+                weeklyHours = listOf(
+                    WeeklyHours(
+                        day = "Friday",
+                        date = Instant.fromEpochMilliseconds(1776960000000),
+                        timeStrings = listOf(
+                            "10:30 AM - 9:00 PM"
+                        )
+                    ),
+                    WeeklyHours(
+                        day = "Saturday",
+                        date = Instant.fromEpochMilliseconds(1776960000000),
+                        timeStrings = listOf(
+                            "10:30 AM - 6:00 PM"
+                        )
+                    ),
+                    WeeklyHours(
+                        day = "Sunday",
+                        date = Instant.fromEpochMilliseconds(1776960000000),
+                        timeStrings = listOf(
+                            "10:30 AM - 4:00 PM"
+                        )
+                    ),
+                    WeeklyHours(
+                        day = "Monday",
+                        date = Instant.fromEpochMilliseconds(1776960000000),
+                        timeStrings = listOf(
+                            "10:30 AM - 9:00 PM"
+                        )
+                    ),
+                    WeeklyHours(
+                        day = "Tuesday",
+                        date = Instant.fromEpochMilliseconds(1776960000000),
+                        timeStrings = listOf(
+                            "10:30 AM - 9:00 PM"
+                        )
+                    ),
+                    WeeklyHours(
+                        day = "Wednesday",
+                        date = Instant.fromEpochMilliseconds(1776960000000),
+                        timeStrings = listOf(
+                            "10:30 AM - 9:00 PM"
+                        )
+                    ),
+                    WeeklyHours(
+                        day = "Thursday",
+                        date = Instant.fromEpochMilliseconds(1776960000000),
+                        timeStrings = listOf(
+                            "10:30 AM - 9:00 PM"
+                        )
+                    )
+                ),
+                opensNext = "",
+                expandHours = true,
+                onExpandHoursChange = {},
+                expandChefs = true,
+                onExpandChefsChange = {},
+                expandDailies = true,
+                onExpandDailiesChange = {}
+            )
+        }
     }
 }

@@ -4,14 +4,12 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -79,7 +77,7 @@ fun HomeScreen(
         if (navBackStackEntry?.destination?.route == Routes.HOME) {
             updateTopBar(
                 TopBarState(
-                    title = "TigerDine for Android",
+                    title = "TigerDine",
                     actions = {
                         IconButton(
                             onClick = { showTopBarMenu = true }
@@ -281,13 +279,7 @@ fun HomeScreen(
                                 navController.navigate(Routes.VISITING_CHEFS)
                             }
                         },
-                        shapes = ListItemDefaults.shapes(
-                            shape = RoundedCornerShape(25),
-                            pressedShape = RoundedCornerShape(25),
-                            selectedShape = RoundedCornerShape(25),
-                            focusedShape = RoundedCornerShape(25),
-                            hoveredShape = RoundedCornerShape(25)
-                        ),
+                        shapes =  ListItemDefaults.shapes(shape = MaterialTheme.shapes.medium),
                         colors = ListItemDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainer,
                         )

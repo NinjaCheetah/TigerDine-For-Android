@@ -90,7 +90,7 @@ fun FeedbackScreenContent(
             }
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(3.dp)
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
             ) {
                 Text(
                     "Incorrect Location Hours",
@@ -172,7 +172,7 @@ fun FeedbackScreenContent(
             }
 
             Column(
-                verticalArrangement = Arrangement.spacedBy(3.dp)
+                verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
             ) {
                 Text(
                     "App Issues and Feedback",
