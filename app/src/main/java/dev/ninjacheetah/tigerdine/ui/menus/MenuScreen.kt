@@ -230,19 +230,6 @@ fun MenuScreen(
                         supportingContent = {
                             Text("${item.calories} Cal")
                         },
-                        trailingContent = {
-                            if (item.price == 0.0) {
-                                Text(
-                                    "Price Unavailable",
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                            } else {
-                                Text(
-                                    "$%.2f".format(item.price),
-                                    style = MaterialTheme.typography.titleSmall
-                                )
-                            }
-                        },
                         onClick = {
                             if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
                                 navController.navigate(menuItem(item.id))

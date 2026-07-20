@@ -724,6 +724,7 @@ fun DetailScreenPreview() {
                 // Why this day? I kept using Imagine's date as a sample, but then I realized that
                 // a weekend date is maybe not the best to test with. So I just stepped it back
                 // a single day to get a better picture of what a typical day looks like.
+                // If it's ever important, the preview time is meant to be 12:00.
                 location = DiningLocation(
                     id = 23,
                     mdoId = 123,

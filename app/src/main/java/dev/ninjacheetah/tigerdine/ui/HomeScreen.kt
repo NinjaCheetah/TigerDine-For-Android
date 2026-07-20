@@ -279,7 +279,7 @@ fun HomeScreen(
                                 navController.navigate(Routes.VISITING_CHEFS)
                             }
                         },
-                        shapes =  ListItemDefaults.shapes(shape = MaterialTheme.shapes.medium),
+                        shapes = ListItemDefaults.shapes(shape = MaterialTheme.shapes.medium),
                         colors = ListItemDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainer,
                         )

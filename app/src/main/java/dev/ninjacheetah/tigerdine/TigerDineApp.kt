@@ -28,8 +28,10 @@ import dev.ninjacheetah.tigerdine.data.state.DiningModelFactory
 import dev.ninjacheetah.tigerdine.data.DiningRepository
 import dev.ninjacheetah.tigerdine.data.persistent.SettingsRepository
 import dev.ninjacheetah.tigerdine.data.persistent.FavoritesRepository
+import dev.ninjacheetah.tigerdine.data.persistent.DiningCacheRepository
 import dev.ninjacheetah.tigerdine.data.persistent.dataStore
 import dev.ninjacheetah.tigerdine.data.persistent.favoritesDataStore
+import dev.ninjacheetah.tigerdine.data.persistent.diningCacheDataStore
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
 import dev.ninjacheetah.tigerdine.ui.navigation.TigerDineNavHost
@@ -56,11 +58,15 @@ fun TigerDineApp() {
         val favoritesRepository = remember {
             FavoritesRepository(context.favoritesDataStore)
         }
+        val diningCacheRepository = remember {
+            DiningCacheRepository(context.diningCacheDataStore)
+        }
 
         val factory = DiningModelFactory(
             diningRepository = diningRepository,
             settingsRepository = settingsRepository,
-            favoritesRepository = favoritesRepository
+            favoritesRepository = favoritesRepository,
+            diningCacheRepository = diningCacheRepository
         )
         val viewModel: DiningModel = viewModel(factory = factory)
 

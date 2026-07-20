@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import dev.ninjacheetah.tigerdine.data.DiningRepository
 import dev.ninjacheetah.tigerdine.data.persistent.SettingsRepository
 import dev.ninjacheetah.tigerdine.data.persistent.FavoritesRepository
+import dev.ninjacheetah.tigerdine.data.persistent.DiningCacheRepository
 import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
 import dev.ninjacheetah.tigerdine.util.parseLocationInfo
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
@@ -19,6 +20,7 @@ import dev.ninjacheetah.tigerdine.util.parseFDMealPlannerMenu
 import dev.ninjacheetah.tigerdine.util.withUpdatedOpenStatus
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -27,6 +29,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.json.Json
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
@@ -34,7 +37,8 @@ import kotlin.time.Instant
 class DiningModel(
     private val diningRepository: DiningRepository,
     private val settingsRepository: SettingsRepository,
-    private val favoritesRepository: FavoritesRepository
+    private val favoritesRepository: FavoritesRepository,
+    private val diningCacheRepository: DiningCacheRepository
 ) : ViewModel() {
 
     // ------------------------------------------------------------------------
@@ -135,22 +139,20 @@ class DiningModel(
     }
 
     // Helper function that gets run by LaunchedEffect. This makes sure that we only run the
-    // actual getHoursByDay() if we haven't already done so, because it would be silly to reload
-    // the data every single time you navigate back the home screen.
+    // actual getHoursByDayCached() if we haven't already done so, because it would be silly to
+    // reload the data every single time you navigate back the home screen.
     fun getHoursByDayIfNeeded() {
         if (locationsByDay.isEmpty()) {
-            getHoursByDay()
+            getHoursByDayCached()
         }
     }
 
     fun getHoursByDay() {
-        println("loading from network")
         viewModelScope.launch {
             isRefreshing = true
 
             try {
-                getDaysRepresented()
-
+                println("loading from network")
                 val results = mutableListOf<List<DiningLocation>>()
 
                 for (day in daysRepresented) {
@@ -163,14 +165,56 @@ class DiningModel(
                 }
 
                 locationsByDay = results
-                lastRefreshed = Clock.System.now()
+                val now = Clock.System.now()
+                lastRefreshed = now
                 loadFailed = false
                 isLoaded = true
-            } catch (_: Exception) {
-                println("encountered error while loading dining data, showing error screen")
+
+                // Cache loaded dining data.
+                val json = Json.encodeToString(results)
+                diningCacheRepository.updateDiningCache(json, now.toEpochMilliseconds())
+            } catch (e: Exception) {
+                println("encountered error while loading dining data, showing error screen: $e")
                 loadFailed = true
             } finally {
                 isRefreshing = false
+            }
+        }
+    }
+
+    // Like on iOS, most things should call this function first. This function will check to see if
+    // cache exists and that it's for today, and will load it if these things are true. Otherwise,
+    // it calls out to the network path getHoursByDay(). If a forced network reload is necessary
+    // (like with the PullToRefreshBox or the refresh button), then you should just call
+    // getHoursByDay() directly.
+    fun getHoursByDayCached() {
+        viewModelScope.launch {
+            isRefreshing = true
+
+            try {
+                getDaysRepresented()
+
+                val lastRefreshedTimestamp = diningCacheRepository.lastRefreshedDate.firstOrNull()
+                val lastRefreshedInstant = lastRefreshedTimestamp?.let { Instant.fromEpochMilliseconds(it) }
+
+                if (lastRefreshedInstant?.isToday() == true) {
+                    val cachedData = diningCacheRepository.cachedDiningData.firstOrNull()
+                    if (cachedData != null) {
+                        println("cache hit, loading from cache")
+                        locationsByDay = Json.decodeFromString<List<List<DiningLocation>>>(cachedData)
+                        lastRefreshed = lastRefreshedInstant
+                        loadFailed = false
+                        isLoaded = true
+                        isRefreshing = false
+                        return@launch
+                    }
+                }
+
+                println("cache miss")
+                getHoursByDay()
+            } catch (e: Exception) {
+                println("encountered error while loading dining data from cache, trying network path: $e")
+                getHoursByDay()
             }
         }
     }
@@ -243,13 +287,14 @@ class DiningModel(
 class DiningModelFactory(
     private val diningRepository: DiningRepository,
     private val settingsRepository: SettingsRepository,
-    private val favoritesRepository: FavoritesRepository
+    private val favoritesRepository: FavoritesRepository,
+    private val diningCacheRepository: DiningCacheRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DiningModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DiningModel(diningRepository, settingsRepository, favoritesRepository) as T
+            return DiningModel(diningRepository, settingsRepository, favoritesRepository, diningCacheRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -54,7 +54,7 @@ data class DiningLocationParser(
             val infinite: Boolean
         )
     }
-    // An individual "menu", which can be either a daily special item or a visitng chef. Description
+    // An individual "menu", which can be either a daily special item or a visiting chef. Description
     // needs to be optional because visiting chefs have descriptions but specials do not.
     @Serializable
     data class Menu(
@@ -74,22 +74,26 @@ data class DiningLocationsParser(
 )
 
 // Enum to represent the four possible states a given location can be in.
+@Serializable
 enum class OpenStatus {
     OPEN, CLOSED, OPENING_SOON, CLOSING_SOON
 }
 
 // An individual open period for a location.
+@Serializable
 data class DiningTimes(
     var openTime: Instant,
     var closeTime: Instant
 )
 
 // Enum to represent the five possible states a visiting chef can be in.
+@Serializable
 enum class VisitingChefStatus {
     HERE_NOW, GONE, ARRIVING_LATER, ARRIVING_SOON, LEAVING_SOON
 }
 
 // A visiting chef present at a location.
+@Serializable
 data class VisitingChef(
     val name: String,
     val description: String,
@@ -99,18 +103,21 @@ data class VisitingChef(
 )
 
 // A daily special at a location.
+@Serializable
 data class DailySpecial(
     val name: String,
     val type: String
 )
 
 // The IDs required to get the menu for a location from FD MealPlanner. Only present if the location appears in the map.
+@Serializable
 data class FDMPIds(
     val locationId: Int,
     val accountId: Int
 )
 
 // The basic information about a dining location needed to display it in the app after parsing is finished.
+@Serializable
 data class DiningLocation(
     val id: Int,
     val mdoId: Int,
