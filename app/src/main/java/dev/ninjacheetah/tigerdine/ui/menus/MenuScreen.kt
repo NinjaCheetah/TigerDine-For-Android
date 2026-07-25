@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.SegmentedListItem
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,7 +95,10 @@ fun MenuScreen(
                                         .height(56.dp)
                                         .selectable(
                                             selected = (opening == viewModel.selectedMealPeriod),
-                                            onClick = { viewModel.changeSelectedMealPeriod(opening) },
+                                            onClick = {
+                                                viewModel.changeSelectedMealPeriod(opening)
+                                                showMealPeriodsPicker = false
+                                            },
                                             role = Role.RadioButton
                                         )
                                         .padding(horizontal = 16.dp),
@@ -122,20 +127,68 @@ fun MenuScreen(
     }
 
     var searchText by rememberSaveable { mutableStateOf("") }
+    val activeAllergens by viewModel.activeAllergens.collectAsState()
 
     val filteredMenuItems = remember(
         viewModel.menuItems,
+        activeAllergens,
+        viewModel.vegetarian.collectAsState().value,
+        viewModel.vegan.collectAsState().value,
+        viewModel.noBeef.collectAsState().value,
+        viewModel.noPork.collectAsState().value,
         searchText
     ) {
         viewModel.menuItems
+            .asSequence()
             .filter {
+                // Filter out any allergens that are currently enabled.
+                if (!it.allergens.isEmpty()) {
+                    for (allergen in it.allergens) {
+                        if (activeAllergens.contains(allergen)) {
+                            return@filter false
+                        }
+                    }
+                }
+                return@filter true
+            }.filter {
+                // Then filter down to vegetarian/vegan if enabled.
+                if (viewModel.vegetarian.value || viewModel.vegan.value) {
+                    if (viewModel.vegetarian.value && (it.dietaryMarkers.contains("Vegetarian") || it.dietaryMarkers.contains(
+                            "Vegan"
+                        ))
+                    ) {
+                        return@filter true
+                    }
+                    if (viewModel.vegan.value && it.dietaryMarkers.contains("Vegan")) {
+                        return@filter true
+                    }
+                    return@filter false
+                }
+                return@filter true
+            }.filter{
+                // Then filter out beef if enabled.
+                if (viewModel.noBeef.value) {
+                    return@filter !it.dietaryMarkers.contains("Beef")
+                }
+                return@filter true
+            }.filter{
+                // Same deal for pork.
+                if (viewModel.noPork.value) {
+                    return@filter !it.dietaryMarkers.contains("Pork")
+                }
+                return@filter true
+            }.filter {
+                // And then finally filter by search text if applicable.
                 searchText.isBlank() || it.name.contains(searchText, ignoreCase = true)
             }.sortedWith(
                 compareBy {
                     it.name.lowercase()
                 }
             )
+            .toList()
     }
+
+    var showDietaryRestrictionsSheet by rememberSaveable { mutableStateOf(false) }
 
     Surface(
         color = MaterialTheme.colorScheme.surfaceDim,
@@ -201,7 +254,7 @@ fun MenuScreen(
                     trailingIcon = {
                         Box {
                             IconButton(
-                                onClick = { println("filter btn tapped") }
+                                onClick = { showDietaryRestrictionsSheet = true }
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.filter_list_24px),
@@ -274,6 +327,14 @@ fun MenuScreen(
                         ),
                     )
                 }
+            }
+        }
+
+        if (showDietaryRestrictionsSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showDietaryRestrictionsSheet = false }
+            ) {
+                MenuDietaryRestrictionsFilterSheet(viewModel = viewModel)
             }
         }
     }

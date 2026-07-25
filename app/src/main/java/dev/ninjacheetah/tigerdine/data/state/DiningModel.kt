@@ -12,6 +12,7 @@ import dev.ninjacheetah.tigerdine.data.persistent.SettingsRepository
 import dev.ninjacheetah.tigerdine.data.persistent.FavoritesRepository
 import dev.ninjacheetah.tigerdine.data.persistent.DiningCacheRepository
 import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
+import dev.ninjacheetah.tigerdine.data.persistent.DietaryRestrictionsRepository
 import dev.ninjacheetah.tigerdine.util.parseLocationInfo
 import dev.ninjacheetah.tigerdine.data.types.DiningLocation
 import dev.ninjacheetah.tigerdine.data.types.FDMenuItem
@@ -38,7 +39,8 @@ class DiningModel(
     private val diningRepository: DiningRepository,
     private val settingsRepository: SettingsRepository,
     private val favoritesRepository: FavoritesRepository,
-    private val diningCacheRepository: DiningCacheRepository
+    private val diningCacheRepository: DiningCacheRepository,
+    private val dietaryRestrictionsRepository: DietaryRestrictionsRepository
 ) : ViewModel() {
 
     // ------------------------------------------------------------------------
@@ -125,6 +127,76 @@ class DiningModel(
     fun toggleFavorite(locationId: Int) {
         viewModelScope.launch {
             favoritesRepository.toggleFavorite(locationId)
+        }
+    }
+
+    val noBeef =
+        dietaryRestrictionsRepository.noBeef
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                false
+            )
+
+    fun setNoBeef(enabled: Boolean) {
+        viewModelScope.launch {
+            dietaryRestrictionsRepository.setNoBeef(enabled)
+        }
+    }
+
+    val noPork =
+        dietaryRestrictionsRepository.noPork
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                false
+            )
+
+    fun setNoPork(enabled: Boolean) {
+        viewModelScope.launch {
+            dietaryRestrictionsRepository.setNoPork(enabled)
+        }
+    }
+
+    val vegetarian =
+        dietaryRestrictionsRepository.vegetarian
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                false
+            )
+
+    fun setVegetarian(enabled: Boolean) {
+        viewModelScope.launch {
+            dietaryRestrictionsRepository.setVegetarian(enabled)
+        }
+    }
+
+    val vegan =
+        dietaryRestrictionsRepository.vegan
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                false
+            )
+
+    fun setVegan(enabled: Boolean) {
+        viewModelScope.launch {
+            dietaryRestrictionsRepository.setVegan(enabled)
+        }
+    }
+
+    val activeAllergens =
+        dietaryRestrictionsRepository.activeAllergens
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptySet()
+            )
+
+    fun toggleActiveAllergen(allergen: String) {
+        viewModelScope.launch {
+            dietaryRestrictionsRepository.toggleActiveAllergen(allergen)
         }
     }
 
@@ -288,13 +360,20 @@ class DiningModelFactory(
     private val diningRepository: DiningRepository,
     private val settingsRepository: SettingsRepository,
     private val favoritesRepository: FavoritesRepository,
-    private val diningCacheRepository: DiningCacheRepository
+    private val diningCacheRepository: DiningCacheRepository,
+    private val dietaryRestrictionsRepository: DietaryRestrictionsRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DiningModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DiningModel(diningRepository, settingsRepository, favoritesRepository, diningCacheRepository) as T
+            return DiningModel(
+                diningRepository,
+                settingsRepository,
+                favoritesRepository,
+                diningCacheRepository,
+                dietaryRestrictionsRepository
+            ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
