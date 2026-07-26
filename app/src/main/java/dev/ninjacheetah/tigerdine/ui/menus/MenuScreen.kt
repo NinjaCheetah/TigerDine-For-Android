@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.ninjacheetah.tigerdine.R
@@ -66,9 +67,11 @@ fun MenuScreen(
 
     val updateTopBar = LocalTopBarStateUpdater.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val lifecycleState by navBackStackEntry?.lifecycle?.currentStateFlow?.collectAsStateWithLifecycle(Lifecycle.State.INITIALIZED)
+        ?: remember { mutableStateOf(Lifecycle.State.INITIALIZED) }
 
-    LaunchedEffect(navBackStackEntry) {
-        if (navBackStackEntry?.destination?.route == Routes.MENU) {
+    LaunchedEffect(navBackStackEntry, lifecycleState) {
+        if (navBackStackEntry?.destination?.route == Routes.MENU && lifecycleState == Lifecycle.State.RESUMED) {
             updateTopBar(
                 TopBarState(
                     title = "Menu",
@@ -122,7 +125,9 @@ fun MenuScreen(
                 )
             )
         }
+    }
 
+    LaunchedEffect(Unit) {
         viewModel.getOpenPeriods()
     }
 

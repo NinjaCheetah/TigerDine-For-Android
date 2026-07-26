@@ -20,6 +20,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,6 +29,8 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
@@ -44,9 +48,11 @@ fun MenuItemScreen(
     val updateTopBar = LocalTopBarStateUpdater.current
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val lifecycleState by navBackStackEntry?.lifecycle?.currentStateFlow?.collectAsStateWithLifecycle(Lifecycle.State.INITIALIZED)
+        ?: remember { mutableStateOf(Lifecycle.State.INITIALIZED) }
 
-    LaunchedEffect(navBackStackEntry) {
-        if (navBackStackEntry?.destination?.route == Routes.MENU_ITEM) {
+    LaunchedEffect(navBackStackEntry, lifecycleState) {
+        if (navBackStackEntry?.destination?.route == Routes.MENU_ITEM && lifecycleState == Lifecycle.State.RESUMED) {
             updateTopBar(
                 TopBarState(
                     title = "Details",

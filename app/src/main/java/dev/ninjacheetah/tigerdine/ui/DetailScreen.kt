@@ -49,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -153,9 +154,11 @@ fun DetailScreen(
     val updateTopBar = LocalTopBarStateUpdater.current
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val lifecycleState by navBackStackEntry?.lifecycle?.currentStateFlow?.collectAsStateWithLifecycle(Lifecycle.State.INITIALIZED)
+        ?: remember { mutableStateOf(Lifecycle.State.INITIALIZED) }
 
-    LaunchedEffect(navBackStackEntry) {
-        if (navBackStackEntry?.destination?.route == Routes.DETAIL) {
+    LaunchedEffect(navBackStackEntry, lifecycleState) {
+        if (navBackStackEntry?.destination?.route == Routes.DETAIL && lifecycleState == Lifecycle.State.RESUMED) {
             updateTopBar(
                 TopBarState(
                     title = "Details",
@@ -207,7 +210,9 @@ fun DetailScreen(
                 )
             )
         }
+    }
 
+    LaunchedEffect(Unit) {
         viewModel.getHoursByDayIfNeeded()
     }
 

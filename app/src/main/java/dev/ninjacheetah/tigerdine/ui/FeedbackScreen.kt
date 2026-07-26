@@ -18,6 +18,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
@@ -25,6 +27,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.ninjacheetah.tigerdine.R
@@ -43,9 +47,11 @@ fun FeedbackScreen(
 
     val updateTopBar = LocalTopBarStateUpdater.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val lifecycleState by navBackStackEntry?.lifecycle?.currentStateFlow?.collectAsStateWithLifecycle(Lifecycle.State.INITIALIZED)
+        ?: remember { mutableStateOf(Lifecycle.State.INITIALIZED) }
 
-    LaunchedEffect(navBackStackEntry) {
-        if (navBackStackEntry?.destination?.route == Routes.FEEDBACK) {
+    LaunchedEffect(navBackStackEntry, lifecycleState) {
+        if (navBackStackEntry?.destination?.route == Routes.FEEDBACK && lifecycleState == Lifecycle.State.RESUMED) {
             updateTopBar(
                 TopBarState(
                     title = "Feedback",

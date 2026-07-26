@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,6 +42,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -72,9 +74,11 @@ fun HomeScreen(
 
     val updateTopBar = LocalTopBarStateUpdater.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val lifecycleState by navBackStackEntry?.lifecycle?.currentStateFlow?.collectAsStateWithLifecycle(Lifecycle.State.INITIALIZED)
+        ?: remember { mutableStateOf(Lifecycle.State.INITIALIZED) }
 
-    LaunchedEffect(navBackStackEntry) {
-        if (navBackStackEntry?.destination?.route == Routes.HOME) {
+    LaunchedEffect(navBackStackEntry, lifecycleState) {
+        if (navBackStackEntry?.destination?.route == Routes.HOME && lifecycleState == Lifecycle.State.RESUMED) {
             updateTopBar(
                 TopBarState(
                     title = "TigerDine",
@@ -159,7 +163,12 @@ fun HomeScreen(
                 )
             )
         }
+    }
 
+    LaunchedEffect(Unit) {
+        // Trigger loading the data in the model. This uses the "if needed" variant since this
+        // LaunchedEffect will run every time you go to the home screen and this will prevent
+        // reloading data unnecessarily.
         viewModel.getHoursByDayIfNeeded()
     }
 
