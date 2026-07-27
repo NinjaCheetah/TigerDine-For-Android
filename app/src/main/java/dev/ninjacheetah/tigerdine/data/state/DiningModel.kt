@@ -275,6 +275,11 @@ class DiningModel(
                         println("cache hit, loading from cache")
                         locationsByDay = Json.decodeFromString<List<List<DiningLocation>>>(cachedData)
                         lastRefreshed = lastRefreshedInstant
+
+                        // Make sure to update the open statuses as soon as the cache is loaded.
+                        updateOpenStatuses()
+
+                        // Set state variables to make the UI appear.
                         loadFailed = false
                         isLoaded = true
                         isRefreshing = false

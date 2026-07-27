@@ -14,6 +14,7 @@ import androidx.compose.material3.SegmentedListItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,10 +43,11 @@ fun LocationList(
     openLocationsFirst: Boolean
 ) {
     val use24Hour = DateFormat.is24HourFormat(LocalContext.current)
+    val favoriteLocations by viewModel.favoriteLocations.collectAsState()
 
     val filteredLocations = remember(
         viewModel.locationsByDay,
-        viewModel.favoriteLocations.collectAsState().value,
+        favoriteLocations,
         searchText,
         openLocationsOnly,
         openLocationsFirst
@@ -65,7 +67,7 @@ fun LocationList(
                 searchText.isBlank() || it.name.contains(searchText, ignoreCase = true)
             }?.sortedWith(
                 compareBy<DiningLocation> {
-                    !viewModel.favoriteLocations.value.contains(it.id)
+                    !favoriteLocations.contains(it.id)
                 }.thenBy {
                     if (openLocationsFirst) {
                         !(it.open == OpenStatus.OPEN || it.open == OpenStatus.CLOSING_SOON)
@@ -154,7 +156,7 @@ fun LocationList(
                                 fontWeight = FontWeight.SemiBold
                             )
 
-                            if (viewModel.favoriteLocations.collectAsState().value.contains(location.id)) {
+                            if (favoriteLocations.contains(location.id)) {
                                 Icon(
                                     painter = painterResource(R.drawable.star_fill_24px),
                                     contentDescription = "Favorite location",

@@ -72,6 +72,7 @@ import dev.ninjacheetah.tigerdine.util.formatNextOpen
 import dev.ninjacheetah.tigerdine.util.formatTigerDine
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import kotlin.time.Instant
 
 @ExperimentalMaterial3ExpressiveApi
@@ -126,29 +127,50 @@ fun DetailScreen(
         newWeeklyHours
     }
 
-    var opensNext = ""
-
-    for (day in viewModel.locationsByDay) {
-        if (opensNext != "") {
-            break
-        }
-
-        if (viewModel.locationsByDay.indexOf(day) == 0) {
-            continue
-        }
-
-        for (loc in day) {
-            if (loc.id == viewModel.focusedLocationId) {
-                if (!loc.diningTimes.isNullOrEmpty()) {
-                    opensNext = "Opens ${
-                        loc.diningTimes.first().openTime.formatNextOpen(
-                            use24Hour
-                        )
-                    }"
+    println("composing")
+    var timeInfoString = ""
+    if (location != null) {
+        if (location.open == OpenStatus.OPEN || location.open == OpenStatus.CLOSING_SOON) {
+            if (!location.diningTimes.isNullOrEmpty()) {
+                for (time in location.diningTimes) {
+                    if (time.closeTime > Clock.System.now()) {
+                        timeInfoString = "Closes ${time.closeTime.formatTigerDine(use24Hour)}"
+                        break
+                    }
+                }
+            }
+        } else {
+            for (day in viewModel.locationsByDay) {
+                if (timeInfoString != "") {
                     break
+                }
+
+                for (loc in day) {
+                    if (loc.id == viewModel.focusedLocationId) {
+                        if (!loc.diningTimes.isNullOrEmpty()) {
+                            for (time in loc.diningTimes) {
+                                if (time.openTime > Clock.System.now()) {
+                                    timeInfoString = "Opens ${
+                                        time.openTime.formatNextOpen(
+                                            use24Hour
+                                        )
+                                    }"
+                                    break
+                                }
+                            }
+                        }
+                        // If this code is running, we already found our location match, and since
+                        // there won't ever be another match we should stop looping for no reason.
+                        break
+                    }
                 }
             }
         }
+    }
+    // This condition should only ever be true if a location is closed all 7 days that we have
+    // data for, so the fallback is to say "Closed this week".
+    if (timeInfoString == "") {
+        timeInfoString = "Closed this week"
     }
 
     val updateTopBar = LocalTopBarStateUpdater.current
@@ -220,7 +242,7 @@ fun DetailScreen(
         location = location,
         use24Hour = use24Hour,
         weeklyHours = weeklyHours,
-        opensNext = opensNext,
+        timeInfoString = timeInfoString,
         expandHours = expandHours,
         onExpandHoursChange = { expandHours = it },
         expandChefs = expandChefs,
@@ -236,7 +258,7 @@ fun DetailScreenContent(
     location: DiningLocation?,
     use24Hour: Boolean,
     weeklyHours: List<WeeklyHours>,
-    opensNext: String,
+    timeInfoString: String,
     expandHours: Boolean,
     onExpandHoursChange: (Boolean) -> Unit,
     expandChefs: Boolean,
@@ -299,7 +321,7 @@ fun DetailScreenContent(
                                 location = location,
                                 use24Hour = use24Hour,
                                 weeklyHours = weeklyHours,
-                                opensNext = opensNext,
+                                opensNext = timeInfoString,
                                 expandHours = expandHours,
                                 onExpandHoursChange = onExpandHoursChange,
                                 expandChefs = expandChefs,
@@ -324,7 +346,7 @@ fun DetailScreenContent(
                             location = location,
                             use24Hour = use24Hour,
                             weeklyHours = weeklyHours,
-                            opensNext = opensNext,
+                            opensNext = timeInfoString,
                             expandHours = expandHours,
                             onExpandHoursChange = onExpandHoursChange,
                             expandChefs = expandChefs,
@@ -390,56 +412,40 @@ private fun LocationInfoList(
             content = {
                 Column {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.Top
                     ) {
-                        when (location.open) {
-                            OpenStatus.OPEN -> Text(
-                                "Open",
-                                color = Color.Green,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-
-                            OpenStatus.CLOSED -> Text(
-                                "Closed",
-                                color = Color.Red,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-
-                            OpenStatus.OPENING_SOON -> Text(
-                                "Opening Soon",
-                                color = Color.hsl(32f, 1.00f, 0.48f),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-
-                            OpenStatus.CLOSING_SOON -> Text(
-                                "Closing Soon",
-                                color = Color.hsl(32f, 1.00f, 0.48f),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                        Text(
-                            text = " • "
-                        )
-                        if (location.open == OpenStatus.OPEN || location.open == OpenStatus.CLOSING_SOON) {
+                        Column {
                             Text(
-                                text = "Closes ${
-                                    location.diningTimes?.first()?.closeTime?.formatTigerDine(
-                                        use24Hour
-                                    )
-                                }"
+                                text = opensNext
                             )
-                        } else {
-                            if (opensNext != "") {
-                                Text(
-                                    text = opensNext
+
+                            when (location.open) {
+                                OpenStatus.OPEN -> Text(
+                                    "Open",
+                                    color = Color.Green,
+                                    style = MaterialTheme.typography.bodyLarge
                                 )
-                            } else {
-                                Text(
-                                    text = "Closed this week"
+
+                                OpenStatus.CLOSED -> Text(
+                                    "Closed",
+                                    color = Color.Red,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+
+                                OpenStatus.OPENING_SOON -> Text(
+                                    "Opening Soon",
+                                    color = Color.hsl(32f, 1.00f, 0.48f),
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+
+                                OpenStatus.CLOSING_SOON -> Text(
+                                    "Closing Soon",
+                                    color = Color.hsl(32f, 1.00f, 0.48f),
+                                    style = MaterialTheme.typography.bodyLarge
                                 )
                             }
                         }
-                        
+
                         Spacer(modifier = Modifier.weight(1f))
                         Icon(
                             painter = painterResource(R.drawable.keyboard_arrow_up_24px),
@@ -831,7 +837,7 @@ fun DetailScreenPreview() {
                         )
                     )
                 ),
-                opensNext = "",
+                timeInfoString = "Closes 9:00 PM",
                 expandHours = true,
                 onExpandHoursChange = {},
                 expandChefs = true,
