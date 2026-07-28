@@ -21,6 +21,7 @@ import dev.ninjacheetah.tigerdine.util.parseFDMealPlannerMenu
 import dev.ninjacheetah.tigerdine.util.withUpdatedOpenStatus
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
@@ -92,7 +93,7 @@ class DiningModel(
         settingsRepository.openLocationsOnly
             .stateIn(
                 viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
+                SharingStarted.Eagerly,
                 false
             )
 
@@ -106,7 +107,7 @@ class DiningModel(
         settingsRepository.openLocationsFirst
             .stateIn(
                 viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
+                SharingStarted.Eagerly,
                 false
             )
 
@@ -120,7 +121,7 @@ class DiningModel(
         favoritesRepository.favoriteLocations
             .stateIn(
                 viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
+                SharingStarted.Eagerly,
                 emptySet()
             )
 
@@ -134,7 +135,7 @@ class DiningModel(
         dietaryRestrictionsRepository.noBeef
             .stateIn(
                 viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
+                SharingStarted.Eagerly,
                 false
             )
 
@@ -148,7 +149,7 @@ class DiningModel(
         dietaryRestrictionsRepository.noPork
             .stateIn(
                 viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
+                SharingStarted.Eagerly,
                 false
             )
 
@@ -162,7 +163,7 @@ class DiningModel(
         dietaryRestrictionsRepository.vegetarian
             .stateIn(
                 viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
+                SharingStarted.Eagerly,
                 false
             )
 
@@ -176,7 +177,7 @@ class DiningModel(
         dietaryRestrictionsRepository.vegan
             .stateIn(
                 viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
+                SharingStarted.Eagerly,
                 false
             )
 
@@ -190,7 +191,7 @@ class DiningModel(
         dietaryRestrictionsRepository.activeAllergens
             .stateIn(
                 viewModelScope,
-                SharingStarted.WhileSubscribed(5000),
+                SharingStarted.Eagerly,
                 emptySet()
             )
 
@@ -240,9 +241,13 @@ class DiningModel(
                 val now = Clock.System.now()
                 lastRefreshed = now
                 loadFailed = false
+
+                // Wait for persistent settings before telling the UI we're ready.
+                waitForPersistentSettings()
+
                 isLoaded = true
 
-                // Cache loaded dining data.
+                // Save loaded dining data and update time to cache.
                 val json = Json.encodeToString(results)
                 diningCacheRepository.updateDiningCache(json, now.toEpochMilliseconds())
             } catch (e: Exception) {
@@ -279,6 +284,9 @@ class DiningModel(
                         // Make sure to update the open statuses as soon as the cache is loaded.
                         updateOpenStatuses()
 
+                        // Wait for persistent settings before telling the UI we're ready.
+                        waitForPersistentSettings()
+
                         // Set state variables to make the UI appear.
                         loadFailed = false
                         isLoaded = true
@@ -290,10 +298,18 @@ class DiningModel(
                 println("cache miss")
                 getHoursByDay()
             } catch (e: Exception) {
-                println("encountered error while loading dining data from cache, trying network path: $e")
+                println("encountered error while loading dining data from cache: $e")
                 getHoursByDay()
             }
         }
+    }
+
+    // Function needed to make sure that favorite locations and sorting settings are already loaded
+    // before the location list is rendered for the first time.
+    private suspend fun waitForPersistentSettings() {
+        favoritesRepository.favoriteLocations.first()
+        settingsRepository.openLocationsOnly.first()
+        settingsRepository.openLocationsFirst.first()
     }
 
     fun updateOpenStatuses() {

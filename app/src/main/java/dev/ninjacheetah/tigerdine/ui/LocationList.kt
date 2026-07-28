@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
@@ -21,8 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -149,22 +155,43 @@ fun LocationList(
                         ), count = filteredLocations.count()
                     ),
                     content = {
-                        Row {
-                            Text(
-                                text = location.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-
-                            if (favoriteLocations.contains(location.id)) {
-                                Icon(
-                                    painter = painterResource(R.drawable.star_fill_24px),
-                                    contentDescription = "Favorite location",
-                                    tint = Color.hsl(48.0f, 1.00f, 0.50f),
-                                    modifier = Modifier.padding(start = 4.dp)
-                                )
+                        val annotatedName = remember(location.name, favoriteLocations) {
+                            buildAnnotatedString {
+                                append(location.name)
+                                if (favoriteLocations.contains(location.id)) {
+                                    // Spacer added to make the star not be too close to the text.
+                                    append(" ")
+                                    appendInlineContent("favorite", "[favorite]")
+                                }
                             }
                         }
+
+                        val inlineContent = if (favoriteLocations.contains(location.id)) {
+                            mapOf(
+                                "favorite" to InlineTextContent(
+                                    Placeholder(
+                                        width = 20.sp,
+                                        height = 20.sp,
+                                        placeholderVerticalAlign = PlaceholderVerticalAlign.Center
+                                    )
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.star_fill_24px),
+                                        contentDescription = "Favorite location",
+                                        tint = Color.hsl(48.0f, 1.00f, 0.50f)
+                                    )
+                                }
+                            )
+                        } else {
+                            emptyMap()
+                        }
+
+                        Text(
+                            text = annotatedName,
+                            inlineContent = inlineContent,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     },
                     colors = ListItemDefaults.colors(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer,
