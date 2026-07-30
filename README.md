@@ -3,6 +3,12 @@
 # TigerDine For Android
 TigerDine for Android is a work-in-progress port of [TigerDine](https://github.com/NinjaCheetah/TigerDine), my unofficial app for getting information about dining locations found across the Rochester Institute of Technology campus, to Android. It's here to answer the question "what if TigerDine but for the other major smartphone demographic?"
 
+<a href="https://play.google.com/store/apps/details?id=dev.ninjacheetah.tigerdine" style="display: inline-block;">
+  <img width="239" height="71" alt="GetItOnGooglePlay_Badge_Web_color_English" src="https://github.com/user-attachments/assets/8dae74b0-f9c8-47d3-8972-6014f424d718" />
+</a>
+
+...or you can download an APK of the [latest release](https://github.com/NinjaCheetah/TigerDine-For-Android/releases/latest).
+
 ## Features
 TigerDine for Android doesn't have everything that the original iOS version has, but it does have the majority of the important features you'd expect.
 
