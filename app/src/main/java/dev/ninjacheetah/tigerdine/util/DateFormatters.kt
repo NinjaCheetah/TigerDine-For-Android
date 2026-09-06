@@ -95,6 +95,21 @@ fun Instant.formatNextOpen(
     return "${this.formatTigerDine(use24Hour)} $weekday"
 }
 
+fun Instant.formatWeekdayShort(): String {
+    val timeZone = TimeZone.of("America/New_York")
+    val date = this.toLocalDateTime(timeZone).date
+
+    return when (date.dayOfWeek) {
+        DayOfWeek.MONDAY -> "Mon"
+        DayOfWeek.TUESDAY -> "Tue"
+        DayOfWeek.WEDNESDAY -> "Wed"
+        DayOfWeek.THURSDAY -> "Thu"
+        DayOfWeek.FRIDAY -> "Fri"
+        DayOfWeek.SATURDAY -> "Sat"
+        DayOfWeek.SUNDAY -> "Sun"
+    }
+}
+
 fun Instant.formatLastRefreshed(
     use24Hour: Boolean
 ): String {

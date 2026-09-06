@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -201,32 +203,6 @@ fun DetailScreen(
                                     tint = Color.hsl(48.0f, 1.00f, 0.50f)
                                 )
                             }
-
-                            IconButton(
-                                onClick = { uriHandler.openUri(location.mapsUrl) }
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.map_24px),
-                                    contentDescription = "Show on map",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-
-                        if (tCtoFDMPMap.contains(viewModel.focusedLocationId)) {
-                            IconButton(
-                                onClick = {
-                                    if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
-                                        navController.navigate(Routes.MENU)
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.menu_book_2_24px),
-                                    contentDescription = "Show menu",
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
                         }
                     }
                 )
@@ -248,7 +224,15 @@ fun DetailScreen(
         expandChefs = expandChefs,
         onExpandChefsChange = { expandChefs = it },
         expandDailies = expandDailies,
-        onExpandDailiesChange = { expandDailies = it }
+        onExpandDailiesChange = { expandDailies = it },
+        onMapClick = { location?.let { uriHandler.openUri(it.mapsUrl) } },
+        onMenuClick = if (tCtoFDMPMap.contains(viewModel.focusedLocationId)) {
+            {
+                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                    navController.navigate(Routes.MENU)
+                }
+            }
+        } else null
     )
 }
 
@@ -264,7 +248,9 @@ fun DetailScreenContent(
     expandChefs: Boolean,
     onExpandChefsChange: (Boolean) -> Unit,
     expandDailies: Boolean,
-    onExpandDailiesChange: (Boolean) -> Unit
+    onExpandDailiesChange: (Boolean) -> Unit,
+    onMapClick: () -> Unit,
+    onMenuClick: (() -> Unit)?
 ) {
     val screenWidth = LocalWindowInfo.current.containerDpSize.width
     val isWideScreen = screenWidth >= 600.dp
@@ -302,6 +288,41 @@ fun DetailScreenContent(
                                 style = MaterialTheme.typography.titleLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = onMapClick,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.map_24px),
+                            contentDescription = null,
+                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                        )
+                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                        Text("Map")
+                    }
+
+                    if (onMenuClick != null) {
+                        Button(
+                            onClick = onMenuClick,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.menu_book_2_24px),
+                                contentDescription = null,
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                            Text("Menu")
                         }
                     }
                 }
@@ -843,7 +864,9 @@ fun DetailScreenPreview() {
                 expandChefs = true,
                 onExpandChefsChange = {},
                 expandDailies = true,
-                onExpandDailiesChange = {}
+                onExpandDailiesChange = {},
+                onMapClick = {},
+                onMenuClick = {}
             )
         }
     }
