@@ -326,10 +326,20 @@ fun VisitingChefsScreenContent(
                                             location.visitingChefs.forEachIndexed { index, chef ->
                                                 SegmentedListItem(
                                                     verticalAlignment = Alignment.CenterVertically,
-                                                    supportingContent = {
-                                                        Row(
-                                                            verticalAlignment = Alignment.CenterVertically
-                                                        ) {
+                                                    supportingContent = { },
+                                                    trailingContent = { },
+                                                    onClick = { },
+                                                    shapes = ListItemDefaults.segmentedShapes(
+                                                        index = index + 1,
+                                                        count = location.visitingChefs.count() + 1
+                                                    ),
+                                                    content = {
+                                                        Column {
+                                                            Text(
+                                                                text = chef.name,
+                                                                fontWeight = FontWeight.SemiBold
+                                                            )
+
                                                             if (page == 0) {
                                                                 when (chef.status) {
                                                                     VisitingChefStatus.HERE_NOW -> Text(
@@ -386,10 +396,7 @@ fun VisitingChefsScreenContent(
                                                                     style = MaterialTheme.typography.bodyLarge
                                                                 )
                                                             }
-                                                            Text(
-                                                                " • ",
-                                                                style = MaterialTheme.typography.bodyLarge
-                                                            )
+
                                                             Text(
                                                                 "${
                                                                     chef.openTime.formatTigerDine(
@@ -403,20 +410,7 @@ fun VisitingChefsScreenContent(
                                                                         }",
                                                                 style = MaterialTheme.typography.bodyLarge
                                                             )
-                                                        }
-                                                    },
-                                                    trailingContent = { },
-                                                    onClick = { },
-                                                    shapes = ListItemDefaults.segmentedShapes(
-                                                        index = index + 1,
-                                                        count = location.visitingChefs.count() + 1
-                                                    ),
-                                                    content = {
-                                                        Column {
-                                                            Text(
-                                                                text = chef.name,
-                                                                fontWeight = FontWeight.SemiBold
-                                                            )
+
                                                             Text(chef.description)
                                                         }
                                                     },

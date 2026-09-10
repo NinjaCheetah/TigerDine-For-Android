@@ -75,6 +75,7 @@ import dev.ninjacheetah.tigerdine.util.formatTigerDine
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Instant
 
 @ExperimentalMaterial3ExpressiveApi
@@ -129,12 +130,16 @@ fun DetailScreen(
         newWeeklyHours
     }
 
-    println("composing")
     var timeInfoString = ""
     if (location != null) {
         if (location.open == OpenStatus.OPEN || location.open == OpenStatus.CLOSING_SOON) {
             if (!location.diningTimes.isNullOrEmpty()) {
                 for (time in location.diningTimes) {
+                    if (time.closeTime == time.openTime + 1.days) {
+                        timeInfoString = "Open 24 Hours"
+                        break
+                    }
+
                     if (time.closeTime > Clock.System.now()) {
                         timeInfoString = "Closes ${time.closeTime.formatTigerDine(use24Hour)}"
                         break
