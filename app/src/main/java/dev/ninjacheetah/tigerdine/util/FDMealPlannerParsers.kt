@@ -1,8 +1,8 @@
 package dev.ninjacheetah.tigerdine.util
 
-import dev.ninjacheetah.tigerdine.data.types.FDMealsParser
-import dev.ninjacheetah.tigerdine.data.types.FDMenuItem
-import dev.ninjacheetah.tigerdine.data.types.FDNutritionalEntry
+import dev.ninjacheetah.tigerdine.types.FDMealsParser
+import dev.ninjacheetah.tigerdine.types.FDMenuItem
+import dev.ninjacheetah.tigerdine.types.FDNutritionalEntry
 
 fun parseFDMealPlannerMenu(menu: FDMealsParser): Pair<List<FDMenuItem>, Map<String, List<Int>>> {
     var menuItems: List<FDMenuItem> = emptyList()

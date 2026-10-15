@@ -1,4 +1,4 @@
-package dev.ninjacheetah.tigerdine.data.types
+package dev.ninjacheetah.tigerdine.types
 
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant

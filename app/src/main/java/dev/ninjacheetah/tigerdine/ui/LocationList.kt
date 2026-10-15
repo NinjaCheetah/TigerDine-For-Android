@@ -35,8 +35,8 @@ import androidx.navigation.NavController
 import dev.ninjacheetah.tigerdine.R
 import dev.ninjacheetah.tigerdine.util.formatTigerDine
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
-import dev.ninjacheetah.tigerdine.data.types.DiningLocation
-import dev.ninjacheetah.tigerdine.data.types.OpenStatus
+import dev.ninjacheetah.tigerdine.types.DiningLocation
+import dev.ninjacheetah.tigerdine.types.OpenStatus
 import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 
 @ExperimentalMaterial3ExpressiveApi

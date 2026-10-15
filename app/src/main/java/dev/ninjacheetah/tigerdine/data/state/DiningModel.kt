@@ -14,8 +14,8 @@ import dev.ninjacheetah.tigerdine.data.persistent.DiningCacheRepository
 import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
 import dev.ninjacheetah.tigerdine.data.persistent.DietaryRestrictionsRepository
 import dev.ninjacheetah.tigerdine.util.parseLocationInfo
-import dev.ninjacheetah.tigerdine.data.types.DiningLocation
-import dev.ninjacheetah.tigerdine.data.types.FDMenuItem
+import dev.ninjacheetah.tigerdine.types.DiningLocation
+import dev.ninjacheetah.tigerdine.types.FDMenuItem
 import dev.ninjacheetah.tigerdine.util.isToday
 import dev.ninjacheetah.tigerdine.util.parseFDMealPlannerMenu
 import dev.ninjacheetah.tigerdine.util.withUpdatedOpenStatus

@@ -1,14 +1,14 @@
 package dev.ninjacheetah.tigerdine.util
 
 import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
-import dev.ninjacheetah.tigerdine.data.types.DailySpecial
-import dev.ninjacheetah.tigerdine.data.types.DiningLocation
-import dev.ninjacheetah.tigerdine.data.types.DiningLocationParser
-import dev.ninjacheetah.tigerdine.data.types.DiningTimes
-import dev.ninjacheetah.tigerdine.data.types.FDMPIds
-import dev.ninjacheetah.tigerdine.data.types.OpenStatus
-import dev.ninjacheetah.tigerdine.data.types.VisitingChef
-import dev.ninjacheetah.tigerdine.data.types.VisitingChefStatus
+import dev.ninjacheetah.tigerdine.types.DailySpecial
+import dev.ninjacheetah.tigerdine.types.DiningLocation
+import dev.ninjacheetah.tigerdine.types.DiningLocationParser
+import dev.ninjacheetah.tigerdine.types.DiningTimes
+import dev.ninjacheetah.tigerdine.types.FDMPIds
+import dev.ninjacheetah.tigerdine.types.OpenStatus
+import dev.ninjacheetah.tigerdine.types.VisitingChef
+import dev.ninjacheetah.tigerdine.types.VisitingChefStatus
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone

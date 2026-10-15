@@ -36,7 +36,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.ninjacheetah.tigerdine.data.state.DiningModel
 import dev.ninjacheetah.tigerdine.data.state.LocalTopBarStateUpdater
 import dev.ninjacheetah.tigerdine.data.state.TopBarState
-import dev.ninjacheetah.tigerdine.data.types.FDMenuItem
+import dev.ninjacheetah.tigerdine.types.FDMenuItem
 import dev.ninjacheetah.tigerdine.ui.navigation.Routes
 
 @Composable

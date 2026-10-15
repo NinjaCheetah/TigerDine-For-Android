@@ -4,9 +4,9 @@ import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonObjectRequest
 import dev.ninjacheetah.tigerdine.util.toYyyyMmDd
-import dev.ninjacheetah.tigerdine.data.types.DiningLocationsParser
-import dev.ninjacheetah.tigerdine.data.types.FDMealPeriodsParser
-import dev.ninjacheetah.tigerdine.data.types.FDMealsParser
+import dev.ninjacheetah.tigerdine.types.DiningLocationsParser
+import dev.ninjacheetah.tigerdine.types.FDMealPeriodsParser
+import dev.ninjacheetah.tigerdine.types.FDMealsParser
 import dev.ninjacheetah.tigerdine.util.toFDMPAPIFriendly
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.datetime.TimeZone
