@@ -61,7 +61,10 @@ data class FDMealsParser(
         val accountName: String,
         val menuTypeName: String,
         val mealPeriodId: Int,
-        val allMenuRecipes: List<MenuRecipe>?
+        val strWeekStartDate: String,
+        val strWeekEndDate: String,
+        val allMenuRecipes: List<MenuRecipe>?,
+        val conceptData: List<Concept>?
     ) {
         @Serializable
         data class MenuRecipe(
@@ -70,6 +73,7 @@ data class FDMealsParser(
             val componentTypeId: Int,
             val englishAlternateName: String,
             val category: String,
+            val rowId: Int,
             val allergenName: String,
             val calories: String,
             val carbohydrates: String,
@@ -104,6 +108,18 @@ data class FDMealsParser(
             val productMeasuringSize: Int,
             val productMeasuringSizeUnit: String,
             val itemsToOrder: Int
+        )
+
+        @Serializable
+        data class Concept(
+            val menuConceptId: Int,
+            val menuId: Int,
+            val conceptId: Int,
+            val conceptName: String,
+            val strWeekStartDate: String,
+            val strWeekEndDate: String,
+            val rowId: Int,
+            val weekId: Int
         )
     }
 }

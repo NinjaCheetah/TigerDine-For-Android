@@ -4,10 +4,32 @@ import dev.ninjacheetah.tigerdine.data.types.FDMealsParser
 import dev.ninjacheetah.tigerdine.data.types.FDMenuItem
 import dev.ninjacheetah.tigerdine.data.types.FDNutritionalEntry
 
-fun parseFDMealPlannerMenu(menu: FDMealsParser): List<FDMenuItem> {
+fun parseFDMealPlannerMenu(menu: FDMealsParser): Pair<List<FDMenuItem>, Map<String, List<Int>>> {
     var menuItems: List<FDMenuItem> = emptyList()
     if (menu.result.isEmpty()) {
-        return menuItems
+        return Pair(menuItems, emptyMap())
+    }
+
+    val firstResult = menu.result.first()
+    val conceptToItemsMap: MutableMap<String, List<Int>> = mutableMapOf()
+
+    // I hate the FD MealPlanner API so much. Why is this entirely based on a grid system?? I feel
+    // like there is no logical reason to have your menu items sorted into boxes based on where
+    // they appear in a grid and not just through like ID matching or something. Holy shit.
+    // And then also even if we're going to do category association by row, why does an API
+    // request for one day's menu provide me with 26 weeks worth of concept data that I have to
+    // match up with the main menu data?? Just show me the data for the current week! You know what
+    // it is already because I had to provide it in my API request. Gah.
+    val rowToConceptMap: MutableMap<Int, String> = mutableMapOf()
+    if (firstResult.conceptData != null) {
+        for (concept in firstResult.conceptData.filter { it.strWeekStartDate == firstResult.strWeekStartDate }) {
+            val cleanConceptName = concept.conceptName.decodingHTMLEntities()
+            rowToConceptMap[concept.rowId] = cleanConceptName
+
+            if (conceptToItemsMap[cleanConceptName] == null) {
+                conceptToItemsMap[cleanConceptName] = listOf()
+            }
+        }
     }
 
     // We only need to operate on the first index, because the request code is designed to only get
@@ -134,7 +156,13 @@ fun parseFDMealPlannerMenu(menu: FDMealsParser): List<FDMenuItem> {
                 servingSizeUnit = recipe.productMeasuringSizeUnit
             )
             menuItems = menuItems.plus(newItem)
+
+            val conceptName = rowToConceptMap.getValue(recipe.rowId)
+            var target = conceptToItemsMap.getValue(conceptName)
+            target = target.plus(recipe.componentId)
+            conceptToItemsMap[conceptName] = target
         }
     }
-    return menuItems
+
+    return Pair(menuItems, conceptToItemsMap)
 }

@@ -332,6 +332,7 @@ class DiningModel(
     var openPeriods: List<Int> by mutableStateOf(emptyList())
     var selectedMealPeriod by mutableIntStateOf(0)
     var menuItems: List<FDMenuItem> by mutableStateOf(emptyList())
+    var conceptToItemsMap: Map<String, List<Int>> by mutableStateOf(emptyMap())
     var menuIsLoaded by mutableStateOf(false)
     var menuIsLoading by mutableStateOf(true)
 
@@ -363,7 +364,9 @@ class DiningModel(
             )
 
             if (rawMenuItems != null) {
-                menuItems = parseFDMealPlannerMenu(rawMenuItems)
+                val (parsedMenuItems, parsedConceptMap) = parseFDMealPlannerMenu(rawMenuItems)
+                menuItems = parsedMenuItems
+                conceptToItemsMap = parsedConceptMap
                 haveMenuForLocationId = focusedLocationId
                 menuIsLoading = false
                 menuIsLoaded = true

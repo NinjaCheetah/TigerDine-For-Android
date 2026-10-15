@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -147,7 +148,7 @@ fun MenuScreen(
             .asSequence()
             .filter {
                 // Filter out any allergens that are currently enabled.
-                if (!it.allergens.isEmpty()) {
+                if (it.allergens.isNotEmpty()) {
                     for (allergen in it.allergens) {
                         if (activeAllergens.contains(allergen)) {
                             return@filter false
@@ -172,16 +173,10 @@ fun MenuScreen(
                 return@filter true
             }.filter{
                 // Then filter out beef if enabled.
-                if (viewModel.noBeef.value) {
-                    return@filter !it.dietaryMarkers.contains("Beef")
-                }
-                return@filter true
+                return@filter !viewModel.noBeef.value || !it.dietaryMarkers.contains("Beef")
             }.filter{
                 // Same deal for pork.
-                if (viewModel.noPork.value) {
-                    return@filter !it.dietaryMarkers.contains("Pork")
-                }
-                return@filter true
+                return@filter !viewModel.noPork.value || !it.dietaryMarkers.contains("Pork")
             }.filter {
                 // And then finally filter by search text if applicable.
                 searchText.isBlank() || it.name.contains(searchText, ignoreCase = true)
@@ -282,55 +277,74 @@ fun MenuScreen(
                     }
                 }
 
-                for (item in filteredMenuItems) {
-                    SegmentedListItem(
-                        verticalAlignment = Alignment.CenterVertically,
-                        supportingContent = {
-                            Text("${item.calories} Cal")
-                        },
-                        onClick = {
-                            if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
-                                navController.navigate(menuItem(item.id))
-                            }
-                        },
-                        shapes = ListItemDefaults.segmentedShapes(
-                            index = filteredMenuItems.indexOf(item),
-                            count = filteredMenuItems.count()
-                        ),
-                        content = {
-                            Column {
-                                Text(
-                                    text = item.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
+                for (concept in viewModel.conceptToItemsMap.keys) {
+                    val itemsForConcept = filteredMenuItems.filter {
+                        viewModel.conceptToItemsMap.getValue(concept).contains(it.id)
+                    }
 
-                                Row {
-                                    for (dietaryMarker in item.dietaryMarkers) {
-                                        val chipColor = when (dietaryMarker) {
-                                            "Vegan", "Vegetarian" -> Color.hsl(134.27f, 0.5697f, 0.4922f)
-                                            else -> Color.hsl(28.47f, 1.00f, 0.5784f)
-                                        }
+                    if (itemsForConcept.isNotEmpty()) {
+                        Spacer(
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        )
 
-                                        Surface(
-                                            color = chipColor,
-                                            shape = RoundedCornerShape(8.dp)
-                                        ) {
-                                            Text(
-                                                text = dietaryMarker,
-                                                color = Color.White,
-                                                style = MaterialTheme.typography.labelSmall,
-                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                            )
+                        Text(
+                            text = concept,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
+                    }
+
+                    for (item in itemsForConcept) {
+                        SegmentedListItem(
+                            verticalAlignment = Alignment.CenterVertically,
+                            supportingContent = {
+                                Text("${item.calories} Cal")
+                            },
+                            onClick = {
+                                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                    navController.navigate(menuItem(item.id))
+                                }
+                            },
+                            shapes = ListItemDefaults.segmentedShapes(
+                                index = itemsForConcept.indexOf(item),
+                                count = itemsForConcept.count()
+                            ),
+                            content = {
+                                Column {
+                                    Text(
+                                        text = item.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+
+                                    Row {
+                                        for (dietaryMarker in item.dietaryMarkers) {
+                                            val chipColor = when (dietaryMarker) {
+                                                "Vegan", "Vegetarian" -> Color.hsl(134.27f, 0.5697f, 0.4922f)
+                                                else -> Color.hsl(28.47f, 1.00f, 0.5784f)
+                                            }
+
+                                            Surface(
+                                                color = chipColor,
+                                                shape = RoundedCornerShape(8.dp)
+                                            ) {
+                                                Text(
+                                                    text = dietaryMarker,
+                                                    color = Color.White,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        },
-                        colors = ListItemDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                        ),
-                    )
+                            },
+                            colors = ListItemDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            ),
+                        )
+                    }
                 }
             }
         }
