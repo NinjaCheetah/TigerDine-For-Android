@@ -21,6 +21,7 @@ import dev.ninjacheetah.tigerdine.ui.DonationScreen
 import dev.ninjacheetah.tigerdine.ui.FeedbackScreen
 import dev.ninjacheetah.tigerdine.ui.HomeScreen
 import dev.ninjacheetah.tigerdine.ui.VisitingChefsScreen
+import dev.ninjacheetah.tigerdine.ui.foodtrucks.FoodTruckScreen
 import dev.ninjacheetah.tigerdine.ui.menus.MenuItemScreen
 import dev.ninjacheetah.tigerdine.ui.menus.MenuScreen
 
@@ -111,6 +112,13 @@ fun TigerDineNavHost(
 
         composable(Routes.VISITING_CHEFS) {
             VisitingChefsScreen(
+                viewModel = viewModel,
+                navController = navController
+            )
+        }
+
+        composable(Routes.FOOD_TRUCKS) {
+            FoodTruckScreen(
                 viewModel = viewModel,
                 navController = navController
             )

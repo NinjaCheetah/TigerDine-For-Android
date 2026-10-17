@@ -93,3 +93,26 @@ data class WeeklyHours(
     val date: Instant,
     val timeStrings: List<String>
 )
+
+// Struct to represent one event that a parent food truck is available at.
+@Serializable
+data class FoodTruckAvailability(
+    val date: Instant,
+    val openTime: Instant,
+    val closeTime: Instant,
+    val mapsUrl: String,
+    val locationName: String,
+    val location: String
+)
+
+// Struct to represent a food truck with a list of events it's available at.
+@Serializable
+data class FoodTruck(
+    val id: Int,
+    val name: String,
+    val description: String,
+    val imageUrl: String,
+    val imageAltTag: String,
+    val url: String,
+    val availability: List<FoodTruckAvailability>
+)

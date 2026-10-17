@@ -4,6 +4,8 @@ object Routes {
     const val HOME = "home"
 
     const val VISITING_CHEFS = "visitingChefs"
+    const val FOOD_TRUCKS = "foodTrucks"
+    const val ALL_FOOD_TRUCKS = "allFoodTrucks"
 
     const val ABOUT = "about"
 

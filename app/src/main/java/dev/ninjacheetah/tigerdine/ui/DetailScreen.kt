@@ -231,6 +231,11 @@ fun DetailScreen(
         expandDailies = expandDailies,
         onExpandDailiesChange = { expandDailies = it },
         onMapClick = { location?.let { uriHandler.openUri(it.mapsUrl) } },
+        onWebsiteClick = if (location?.websiteUrl != null) {
+            {
+                uriHandler.openUri(location.websiteUrl)
+            }
+        } else null,
         onMenuClick = if (tCtoFDMPMap.contains(viewModel.focusedLocationId)) {
             {
                 if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
@@ -255,6 +260,7 @@ fun DetailScreenContent(
     expandDailies: Boolean,
     onExpandDailiesChange: (Boolean) -> Unit,
     onMapClick: () -> Unit,
+    onWebsiteClick: (() -> Unit)?,
     onMenuClick: (() -> Unit)?
 ) {
     val screenWidth = LocalWindowInfo.current.containerDpSize.width
@@ -307,13 +313,34 @@ fun DetailScreenContent(
                         onClick = onMapClick,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.map_24px),
-                            contentDescription = null,
-                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                        )
-                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text("Map")
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.map_24px),
+                                contentDescription = null,
+                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                            )
+                            Text("Map")
+                        }
+                    }
+
+                    if (onWebsiteClick != null) {
+                        Button(
+                            onClick = onWebsiteClick,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.public_24px),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Text("Website")
+                            }
+                        }
                     }
 
                     if (onMenuClick != null) {
@@ -321,13 +348,16 @@ fun DetailScreenContent(
                             onClick = onMenuClick,
                             modifier = Modifier.weight(1f)
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.menu_book_2_24px),
-                                contentDescription = null,
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
-                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text("Menu")
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.menu_book_2_24px),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Text("Menu")
+                            }
                         }
                     }
                 }
@@ -776,7 +806,7 @@ fun DetailScreenPreview() {
                         This location is cashless everyday after 7 p.m. Customers using cash may use a Tiger Spend Reload Station to add funds to an existing RIT ID card or a Reload Card.
                     """.trimIndent(),
                     mapsUrl = "https://maps.rit.edu/?mdo_id=123",
-                    websiteUrl = null,
+                    websiteUrl = "https://www.rit.edu/dining/location/cafe-and-market-crossroads",
                     date = Instant.fromEpochMilliseconds(1776960000000),
                     diningTimes = listOf(
                         DiningTimes(
@@ -872,6 +902,7 @@ fun DetailScreenPreview() {
                 expandDailies = true,
                 onExpandDailiesChange = {},
                 onMapClick = {},
+                onWebsiteClick = {},
                 onMenuClick = {}
             )
         }

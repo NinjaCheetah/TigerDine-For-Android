@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import dev.ninjacheetah.tigerdine.data.DiningRepository
 import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
 import dev.ninjacheetah.tigerdine.data.parsers.parseFDMealPlannerMenu
+import dev.ninjacheetah.tigerdine.data.parsers.parseFoodTruckInfoRM
 import dev.ninjacheetah.tigerdine.data.parsers.parseLocationInfoRM
 import dev.ninjacheetah.tigerdine.data.persistent.DietaryRestrictionsRepository
 import dev.ninjacheetah.tigerdine.data.persistent.DiningCacheRepository
@@ -17,6 +18,7 @@ import dev.ninjacheetah.tigerdine.data.persistent.FavoritesRepository
 import dev.ninjacheetah.tigerdine.data.persistent.SettingsRepository
 import dev.ninjacheetah.tigerdine.types.DiningLocation
 import dev.ninjacheetah.tigerdine.types.FDMenuItem
+import dev.ninjacheetah.tigerdine.types.FoodTruck
 import dev.ninjacheetah.tigerdine.util.isToday
 import dev.ninjacheetah.tigerdine.util.withUpdatedOpenStatus
 import kotlinx.coroutines.delay
@@ -386,6 +388,58 @@ class DiningModel(
     fun changeSelectedMealPeriod(newSelectedPeriod: Int) {
         selectedMealPeriod = newSelectedPeriod
         getMenuForPeriod()
+    }
+
+    // ------------------------------------------------------------------------
+    // Food Truck Section
+    //
+    //      Holds the food truck state required for the food truck screen.
+    // ------------------------------------------------------------------------
+
+    var foodTrucks by mutableStateOf<List<FoodTruck>>(emptyList())
+    var foodTruckIsLoaded by mutableStateOf(false)
+    var foodTruckIsLoading by mutableStateOf(true)
+
+    fun getFoodTrucks() {
+        if (foodTrucks.isEmpty()) {
+            viewModelScope.launch {
+                val rawFoodTrucks = diningRepository.getFoodTruckInfo()
+
+                val newTrucks = mutableListOf<FoodTruck>()
+                if (!rawFoodTrucks.isNullOrEmpty()) {
+                    for (truck in rawFoodTrucks) {
+                        newTrucks.add(parseFoodTruckInfoRM(truck))
+                    }
+                }
+                foodTrucks = newTrucks
+                foodTruckIsLoaded = true
+                foodTruckIsLoading = false
+            }
+        }
+    }
+
+    fun getDatesWithTrucks(): List<Instant> {
+        val dates = mutableListOf<Instant>()
+        for (truck in foodTrucks) {
+            for (availability in truck.availability) {
+                if (!dates.contains(availability.date)) {
+                    dates.add(availability.date)
+                }
+            }
+        }
+        return dates
+    }
+
+    fun getFoodTrucksForDate(date: Instant): List<FoodTruck> {
+        val trucks = mutableListOf<FoodTruck>()
+        for (truck in foodTrucks) {
+            for (availability in truck.availability) {
+                if (availability.date == date) {
+                    trucks.add(truck)
+                }
+            }
+        }
+        return trucks
     }
 }
 

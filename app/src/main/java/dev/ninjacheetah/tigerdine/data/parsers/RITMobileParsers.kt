@@ -7,6 +7,9 @@ import dev.ninjacheetah.tigerdine.types.DiningLocation
 import dev.ninjacheetah.tigerdine.types.DiningLocationRMParser
 import dev.ninjacheetah.tigerdine.types.DiningTimes
 import dev.ninjacheetah.tigerdine.types.FDMPIds
+import dev.ninjacheetah.tigerdine.types.FoodTruck
+import dev.ninjacheetah.tigerdine.types.FoodTruckAvailability
+import dev.ninjacheetah.tigerdine.types.FoodTruckRMParser
 import dev.ninjacheetah.tigerdine.types.OpenStatus
 import dev.ninjacheetah.tigerdine.types.VisitingChef
 import dev.ninjacheetah.tigerdine.types.VisitingChefStatus
@@ -14,8 +17,10 @@ import dev.ninjacheetah.tigerdine.util.getInstantFromTimeStr
 import dev.ninjacheetah.tigerdine.util.getOpenStatus
 import dev.ninjacheetah.tigerdine.util.toYyyyMmDd
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -72,7 +77,7 @@ fun parseLocationInfoRM(location: DiningLocationRMParser, forDate: Instant?): Di
             summary = summary,
             desc = desc,
             mapsUrl = mapsUrl,
-            websiteUrl = null,
+            websiteUrl = location.url,
             date = forDate ?: Clock.System.now(),
             diningTimes = null,
             open = OpenStatus.CLOSED,
@@ -107,7 +112,7 @@ fun parseLocationInfoRM(location: DiningLocationRMParser, forDate: Instant?): Di
             summary = summary,
             desc = desc,
             mapsUrl = mapsUrl,
-            websiteUrl = null,
+            websiteUrl = location.url,
             date = forDate ?: Clock.System.now(),
             diningTimes = null,
             open = OpenStatus.CLOSED,
@@ -229,11 +234,45 @@ fun parseLocationInfoRM(location: DiningLocationRMParser, forDate: Instant?): Di
         summary = summary,
         desc = desc,
         mapsUrl = mapsUrl,
-        websiteUrl = null,
+        websiteUrl = location.url,
         date = forDate ?: Clock.System.now(),
         diningTimes = diningTimes,
         open = openStatus,
         visitingChefs = visitingChefs,
         dailySpecials = dailySpecials
+    )
+}
+
+fun parseFoodTruckInfoRM(truck: FoodTruckRMParser): FoodTruck {
+    val availability = mutableListOf<FoodTruckAvailability>()
+
+    for (dateAvailable in truck.datesAvailable) {
+        // Get today's date to use for the availability and to combine with the timestamps.
+        val ldt = LocalDateTime.parse("${dateAvailable.date}T00:00:00")
+        val date = ldt.toInstant(TimeZone.of("America/New_York"))
+
+        val openTime = getInstantFromTimeStr(dateAvailable.startTime, date)
+        val closeTime = getInstantFromTimeStr(dateAvailable.endTime, date)
+
+        availability.add(
+            FoodTruckAvailability(
+                date = date,
+                openTime = openTime,
+                closeTime = closeTime,
+                mapsUrl = dateAvailable.url,
+                locationName = dateAvailable.urlTitle,
+                location = dateAvailable.location
+            )
+        )
+    }
+
+    return FoodTruck(
+        id = truck.id.toInt(), // This **SHOULD** always be okay??
+        name = truck. title,
+        description = truck.description,
+        imageUrl = truck.imageUrl,
+        imageAltTag = truck.imageAltTag,
+        url = truck.url,
+        availability = availability
     )
 }

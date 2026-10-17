@@ -9,6 +9,7 @@ import dev.ninjacheetah.tigerdine.util.toYyyyMmDd
 import dev.ninjacheetah.tigerdine.types.DiningLocationsTCParser
 import dev.ninjacheetah.tigerdine.types.FDMealPeriodsParser
 import dev.ninjacheetah.tigerdine.types.FDMealsParser
+import dev.ninjacheetah.tigerdine.types.FoodTruckRMParser
 import dev.ninjacheetah.tigerdine.util.toFDMPAPIFriendly
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.datetime.TimeZone
@@ -70,6 +71,30 @@ class DiningRepository(
                 { response ->
                     continuation.resume(
                         json.decodeFromString<List<DiningLocationRMParser>>(
+                            response.toString()
+                        )
+                    )
+                },
+                { error ->
+                    println("error occurred while fetching dining data: $error")
+                    continuation.resume(null)
+                }
+            )
+
+            requestQueue.add(request)
+        }
+
+    suspend fun getFoodTruckInfo(): List<FoodTruckRMParser>? =
+        suspendCancellableCoroutine { continuation ->
+            val url = "https://www.rit.edu/dining/feeds/mobile-app/food-trucks.php?showAll=1"
+
+            val request = JsonArrayRequest(
+                Request.Method.GET,
+                url,
+                null,
+                { response ->
+                    continuation.resume(
+                        json.decodeFromString<List<FoodTruckRMParser>>(
                             response.toString()
                         )
                     )

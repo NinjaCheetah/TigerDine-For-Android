@@ -131,3 +131,24 @@ object DietaryTagsRMSerializer : KSerializer<List<String>> {
         }
     }
 }
+
+@Serializable
+data class FoodTruckRMParser(
+    val id: String,
+    val title: String,
+    val description: String,
+    val imageUrl: String,
+    val imageAltTag: String,
+    val url: String,
+    val datesAvailable: List<DatesAvailableRM>
+) {
+    @Serializable
+    data class DatesAvailableRM(
+        val date: String,
+        val startTime: String,
+        val endTime: String,
+        val url: String,
+        val urlTitle: String,
+        val location: String
+    )
+}

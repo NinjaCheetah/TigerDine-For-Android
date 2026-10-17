@@ -268,31 +268,67 @@ fun HomeScreen(
                         }
                     )
 
-                    SegmentedListItem(
-                        verticalAlignment = Alignment.CenterVertically,
-                        content = {
-                            Text(
-                                "Upcoming Visiting Chefs",
-                                fontWeight = FontWeight.SemiBold
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(ListItemDefaults.SegmentedGap)
+                    ) {
+                        SegmentedListItem(
+                            verticalAlignment = Alignment.CenterVertically,
+                            content = {
+                                Text(
+                                    "Upcoming Visiting Chefs",
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            },
+                            trailingContent = {
+                                Icon(
+                                    painter = painterResource(R.drawable.chevron_right_24px),
+                                    contentDescription = "An icon of a chevron pointing to the right",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            onClick = {
+                                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                    navController.navigate(Routes.VISITING_CHEFS)
+                                }
+                            },
+                            shapes = ListItemDefaults.segmentedShapes(
+                                index = 0,
+                                count = 2
+                            ),
+                            colors = ListItemDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
                             )
-                        },
-                        trailingContent = {
-                            Icon(
-                                painter = painterResource(R.drawable.chevron_right_24px),
-                                contentDescription = "An icon of a chevron pointing to the right",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        onClick = {
-                            if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
-                                navController.navigate(Routes.VISITING_CHEFS)
-                            }
-                        },
-                        shapes = ListItemDefaults.shapes(shape = MaterialTheme.shapes.medium),
-                        colors = ListItemDefaults.colors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainer,
                         )
-                    )
+
+                        SegmentedListItem(
+                            verticalAlignment = Alignment.CenterVertically,
+                            content = {
+                                Text(
+                                    "Weekend Food Trucks",
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            },
+                            trailingContent = {
+                                Icon(
+                                    painter = painterResource(R.drawable.chevron_right_24px),
+                                    contentDescription = "An icon of a chevron pointing to the right",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            onClick = {
+                                if (navController.currentBackStackEntry?.lifecycle?.currentState == Lifecycle.State.RESUMED) {
+                                    navController.navigate(Routes.FOOD_TRUCKS)
+                                }
+                            },
+                            shapes = ListItemDefaults.segmentedShapes(
+                                index = 1,
+                                count = 2
+                            ),
+                            colors = ListItemDefaults.colors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            )
+                        )
+                    }
 
                     LocationList(
                         viewModel = viewModel,
