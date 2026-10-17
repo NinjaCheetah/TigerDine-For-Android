@@ -8,16 +8,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import dev.ninjacheetah.tigerdine.data.DiningRepository
-import dev.ninjacheetah.tigerdine.data.persistent.SettingsRepository
-import dev.ninjacheetah.tigerdine.data.persistent.FavoritesRepository
-import dev.ninjacheetah.tigerdine.data.persistent.DiningCacheRepository
 import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
+import dev.ninjacheetah.tigerdine.data.parsers.parseFDMealPlannerMenu
+import dev.ninjacheetah.tigerdine.data.parsers.parseLocationInfoRM
 import dev.ninjacheetah.tigerdine.data.persistent.DietaryRestrictionsRepository
-import dev.ninjacheetah.tigerdine.util.parseLocationInfo
+import dev.ninjacheetah.tigerdine.data.persistent.DiningCacheRepository
+import dev.ninjacheetah.tigerdine.data.persistent.FavoritesRepository
+import dev.ninjacheetah.tigerdine.data.persistent.SettingsRepository
 import dev.ninjacheetah.tigerdine.types.DiningLocation
 import dev.ninjacheetah.tigerdine.types.FDMenuItem
 import dev.ninjacheetah.tigerdine.util.isToday
-import dev.ninjacheetah.tigerdine.util.parseFDMealPlannerMenu
 import dev.ninjacheetah.tigerdine.util.withUpdatedOpenStatus
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
@@ -226,18 +226,27 @@ class DiningModel(
 
             try {
                 println("loading from network")
-                val results = mutableListOf<List<DiningLocation>>()
 
+//                for (day in daysRepresented) {
+//                    val parserResult =
+//                        diningRepository.getAllDiningInfoTC(day) ?: throw Exception()
+//
+//                    results += parserResult
+//                        .locations
+//                        .map { parseLocationInfoTC(it, day) }
+//                }
+
+                val newLocationsByDay = mutableListOf<List<DiningLocation>>()
+                val locations = diningRepository.getAllDiningInfoRM() ?: throw Exception()
                 for (day in daysRepresented) {
-                    val parserResult =
-                        diningRepository.getAllDiningInfo(day) ?: throw Exception()
-
-                    results += parserResult
-                        .locations
-                        .map { parseLocationInfo(it, day) }
+                    val newDiningLocations = mutableListOf<DiningLocation>()
+                    for (location in locations) {
+                        newDiningLocations.add(parseLocationInfoRM(location, day))
+                    }
+                    newLocationsByDay.add(newDiningLocations)
                 }
 
-                locationsByDay = results
+                locationsByDay = newLocationsByDay
                 val now = Clock.System.now()
                 lastRefreshed = now
                 loadFailed = false
@@ -248,7 +257,7 @@ class DiningModel(
                 isLoaded = true
 
                 // Save loaded dining data and update time to cache.
-                val json = Json.encodeToString(results)
+                val json = Json.encodeToString(newLocationsByDay)
                 diningCacheRepository.updateDiningCache(json, now.toEpochMilliseconds())
             } catch (e: Exception) {
                 println("encountered error while loading dining data, showing error screen: $e")

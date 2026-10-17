@@ -458,6 +458,7 @@ fun VisitingChefsScreenPreview() {
                             summary = "Restaurant and Convenience Store",
                             desc = "Description here",
                             mapsUrl = "https://maps.rit.edu/?mdo_id=123",
+                            websiteUrl = null,
                             date = Instant.fromEpochMilliseconds(1776960000000),
                             diningTimes = listOf(
                                 DiningTimes(

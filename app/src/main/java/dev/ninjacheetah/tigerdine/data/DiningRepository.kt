@@ -2,9 +2,11 @@ package dev.ninjacheetah.tigerdine.data
 
 import com.android.volley.Request
 import com.android.volley.RequestQueue
+import com.android.volley.toolbox.JsonArrayRequest
 import com.android.volley.toolbox.JsonObjectRequest
+import dev.ninjacheetah.tigerdine.types.DiningLocationRMParser
 import dev.ninjacheetah.tigerdine.util.toYyyyMmDd
-import dev.ninjacheetah.tigerdine.types.DiningLocationsParser
+import dev.ninjacheetah.tigerdine.types.DiningLocationsTCParser
 import dev.ninjacheetah.tigerdine.types.FDMealPeriodsParser
 import dev.ninjacheetah.tigerdine.types.FDMealsParser
 import dev.ninjacheetah.tigerdine.util.toFDMPAPIFriendly
@@ -20,9 +22,14 @@ import kotlin.time.Instant
 class DiningRepository(
     private val requestQueue: RequestQueue
 ) {
-    suspend fun getAllDiningInfo(
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
+
+    suspend fun getAllDiningInfoTC(
         date: Instant?
-    ): DiningLocationsParser? =
+    ): DiningLocationsTCParser? =
         suspendCancellableCoroutine { continuation ->
             val zone = TimeZone.currentSystemDefault()
             val targetDate =
@@ -38,7 +45,31 @@ class DiningRepository(
                 null,
                 { response ->
                     continuation.resume(
-                        Json.decodeFromString<DiningLocationsParser>(
+                        json.decodeFromString<DiningLocationsTCParser>(
+                            response.toString()
+                        )
+                    )
+                },
+                { error ->
+                    println("error occurred while fetching dining data: $error")
+                    continuation.resume(null)
+                }
+            )
+
+            requestQueue.add(request)
+        }
+
+    suspend fun getAllDiningInfoRM(): List<DiningLocationRMParser>? =
+        suspendCancellableCoroutine { continuation ->
+            val url = "https://www.rit.edu/feeds/mobile-app/dining-all.php"
+
+            val request = JsonArrayRequest(
+                Request.Method.GET,
+                url,
+                null,
+                { response ->
+                    continuation.resume(
+                        json.decodeFromString<List<DiningLocationRMParser>>(
                             response.toString()
                         )
                     )
@@ -66,9 +97,7 @@ class DiningRepository(
                 null,
                 { response ->
                     continuation.resume(
-                        Json {
-                            ignoreUnknownKeys = true
-                        }.decodeFromString<FDMealPeriodsParser>(
+                        json.decodeFromString<FDMealPeriodsParser>(
                             response.toString()
                         )
                     )
@@ -107,9 +136,7 @@ class DiningRepository(
                 null,
                 { response ->
                     continuation.resume(
-                        Json {
-                            ignoreUnknownKeys = true
-                        }.decodeFromString<FDMealsParser>(
+                        json.decodeFromString<FDMealsParser>(
                             response.toString()
                         )
                     )

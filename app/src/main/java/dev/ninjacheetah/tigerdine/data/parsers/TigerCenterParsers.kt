@@ -1,14 +1,15 @@
-package dev.ninjacheetah.tigerdine.util
+package dev.ninjacheetah.tigerdine.data.parsers
 
 import dev.ninjacheetah.tigerdine.data.constant.tCtoFDMPMap
 import dev.ninjacheetah.tigerdine.types.DailySpecial
 import dev.ninjacheetah.tigerdine.types.DiningLocation
-import dev.ninjacheetah.tigerdine.types.DiningLocationParser
+import dev.ninjacheetah.tigerdine.types.DiningLocationTCParser
 import dev.ninjacheetah.tigerdine.types.DiningTimes
 import dev.ninjacheetah.tigerdine.types.FDMPIds
 import dev.ninjacheetah.tigerdine.types.OpenStatus
 import dev.ninjacheetah.tigerdine.types.VisitingChef
 import dev.ninjacheetah.tigerdine.types.VisitingChefStatus
+import dev.ninjacheetah.tigerdine.util.getOpenStatus
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -18,51 +19,8 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-fun parseOpenStatus(openTime: Instant, closeTime: Instant, referenceTime: Instant): OpenStatus {
-    return when {
-        referenceTime in openTime..closeTime -> {
-            val openNextDay = openTime.plus(24, DateTimeUnit.HOUR)
-            if (closeTime == openNextDay) {
-                OpenStatus.OPEN
-            } else if (closeTime <= referenceTime.plus(30, DateTimeUnit.MINUTE)) {
-                OpenStatus.CLOSING_SOON
-            } else {
-                OpenStatus.OPEN
-            }
-        }
-        referenceTime < openTime && openTime <= referenceTime.plus(30, DateTimeUnit.MINUTE) -> {
-            OpenStatus.OPENING_SOON
-        }
-        else -> OpenStatus.CLOSED
-    }
-}
-
-fun parseMultiOpenStatus(diningTimes: List<DiningTimes>?, referenceTime: Instant): OpenStatus {
-    var openStatus: OpenStatus = OpenStatus.CLOSED
-
-    if (diningTimes.isNullOrEmpty()) {
-        return openStatus
-    }
-
-    for (i in diningTimes.indices) {
-        openStatus = parseOpenStatus(
-            diningTimes[i].openTime,
-            diningTimes[i].closeTime,
-            referenceTime
-        )
-        // If the first event pass came back closed, loop again in case a later event has a
-        // different status. This is mostly to accurately catch Gracie's/Brick City Cafe's multiple
-        // open periods each day.
-        if (openStatus != OpenStatus.CLOSED) {
-            return openStatus
-        }
-    }
-
-    return OpenStatus.CLOSED
-}
-
-fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): DiningLocation {
-    println("beginning parse for ${location.name} (id: ${location.id})")
+fun parseLocationInfoTC(location: DiningLocationTCParser, forDate: Instant?): DiningLocation {
+    println("beginning parse for ${location.name} (id: ${location.id}) from TC API")
     println(forDate)
 
     // The descriptions sometimes have HTML <br /> tags despite also having \n.
@@ -96,6 +54,7 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
             summary = location.summary,
             desc = desc,
             mapsUrl = mapsUrl,
+            websiteUrl = null,
             date = forDate ?: Clock.System.now(),
             diningTimes = null,
             open = OpenStatus.CLOSED,
@@ -161,6 +120,7 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
             summary = location.summary,
             desc = desc,
             mapsUrl = mapsUrl,
+            websiteUrl = null,
             date = forDate ?: Clock.System.now(),
             diningTimes = null,
             open = OpenStatus.CLOSED,
@@ -232,7 +192,8 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
     // the docs for parseOpenStatus().
     var openStatus: OpenStatus = OpenStatus.CLOSED
     for (i in diningTimes.indices) {
-        openStatus = parseOpenStatus(diningTimes[i].openTime, diningTimes[i].closeTime, Clock.System.now())
+        openStatus =
+            getOpenStatus(diningTimes[i].openTime, diningTimes[i].closeTime, Clock.System.now())
         // If the first event pass came back closed, loop again in case a later event has a
         // different status. This is mostly to accurately catch Gracie's multiple open periods
         // each day.
@@ -303,7 +264,11 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
                 }
 
                 // Parse the chef's status, mapping the OpenStatus to a VisitingChefStatus.
-                val visitngChefStatus: VisitingChefStatus = when (parseOpenStatus(openTime, closeTime, Clock.System.now())) {
+                val visitngChefStatus: VisitingChefStatus = when (getOpenStatus(
+                    openTime,
+                    closeTime,
+                    Clock.System.now()
+                )) {
                     OpenStatus.OPEN -> VisitingChefStatus.HERE_NOW
                     OpenStatus.CLOSED -> {
                         if (Clock.System.now() < openTime) {
@@ -351,44 +316,11 @@ fun parseLocationInfo(location: DiningLocationParser, forDate: Instant?): Dining
         summary = location.summary,
         desc = desc,
         mapsUrl = mapsUrl,
+        websiteUrl = null,
         date = forDate ?: Clock.System.now(),
         diningTimes = diningTimes,
         open = openStatus,
         visitingChefs = visitingChefs,
         dailySpecials = dailySpecials
-    )
-}
-
-// Updates the open status of a location and of its visiting chefs, so that the labels in the UI
-// update automatically as time progresses and locations open/close/etc.
-fun DiningLocation.withUpdatedOpenStatus(): DiningLocation {
-    return copy(
-        open = parseMultiOpenStatus(diningTimes, Clock.System.now()),
-        visitingChefs = if (!visitingChefs.isNullOrEmpty()) {
-            visitingChefs.map { chef ->
-                chef.copy(
-                    status = when (
-                        parseOpenStatus(
-                            chef.openTime,
-                            chef.closeTime,
-                            Clock.System.now()
-                        )
-                    ) {
-                        OpenStatus.OPEN -> VisitingChefStatus.HERE_NOW
-                        OpenStatus.CLOSED ->
-                            if (Clock.System.now() < chef.openTime) {
-                                VisitingChefStatus.ARRIVING_LATER
-                            } else {
-                                VisitingChefStatus.GONE
-                            }
-
-                        OpenStatus.OPENING_SOON -> VisitingChefStatus.ARRIVING_SOON
-                        OpenStatus.CLOSING_SOON -> VisitingChefStatus.LEAVING_SOON
-                    }
-                )
-            }
-        } else {
-            null
-        }
     )
 }

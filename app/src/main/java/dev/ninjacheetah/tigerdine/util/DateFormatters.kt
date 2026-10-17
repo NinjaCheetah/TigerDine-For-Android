@@ -5,7 +5,9 @@ import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
+import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalDateTime
+import kotlin.text.split
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -133,4 +135,26 @@ fun Instant.isToday(): Boolean {
     val timeZone = TimeZone.of("America/New_York")
     return this.toLocalDateTime(timeZone).date ==
             Clock.System.now().toLocalDateTime(timeZone).date
+}
+
+// Converts a time string like 12:00:00 into a full Instant for a given date.
+fun getInstantFromTimeStr(timeStr: String, forDate: Instant?): Instant {
+    val timeParts = timeStr.split(":").map { it.toInt() }
+    // Clamp this because the RM API will use 24:00 to mean midnight, so we need to wrap that
+    // around to 00:00.
+    val hour: Int = if (timeParts[0] > 23) 0 else timeParts[0]
+
+    val zone = TimeZone.currentSystemDefault()
+    val date =
+        forDate?.toLocalDateTime(zone)?.date
+            ?: Clock.System.now().toLocalDateTime(zone).date
+
+    return LocalDateTime(
+        date.year,
+        date.month,
+        date.day,
+        hour,
+        timeParts[1], // Minute from timeParts
+        0
+    ).toInstant(zone)
 }

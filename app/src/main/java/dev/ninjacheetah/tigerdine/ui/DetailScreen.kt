@@ -776,6 +776,7 @@ fun DetailScreenPreview() {
                         This location is cashless everyday after 7 p.m. Customers using cash may use a Tiger Spend Reload Station to add funds to an existing RIT ID card or a Reload Card.
                     """.trimIndent(),
                     mapsUrl = "https://maps.rit.edu/?mdo_id=123",
+                    websiteUrl = null,
                     date = Instant.fromEpochMilliseconds(1776960000000),
                     diningTimes = listOf(
                         DiningTimes(
